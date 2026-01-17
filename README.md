@@ -55,5 +55,5 @@ After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address o
 
 ## Thanks
 
-- (Waste)[https://github.com/ChenQingMua/WasteLanguage]
+- [Waste](https://github.com/ChenQingMua/WasteLanguage)
 - Brainfuck
