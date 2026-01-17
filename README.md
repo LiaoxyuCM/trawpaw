@@ -1,4 +1,4 @@
-# trawpaw
+# Trawpaw
 At least it is an turing complete.
 
 [Try Trawpaw online](https://tools.liaoxyucm.xyz/trawpaw)
@@ -7,14 +7,30 @@ At least it is an turing complete.
 
 - Python 3.10+
 
-## How to use trawpaw.py?
+## How to use trawpaw?
 
+### Python
 ```sh
 python trawpaw.py # To open Trawpaw REPL
 python trawpaw.py --help # To show trawpaw usage
 python trawpaw.py filepath # To execute this file
 ```
 After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address of this pointer is 0 and `v:0` means there are 0 variables defined.
+
+### JavaScript (Front-end)
+```js
+import { Trawpaw } from "./trawpaw.js";
+document.addEventListener("DOMContentLoaded", async() => {
+  const trawpaw = new Trawpaw();
+  // To execute trawpaw code, async-await is required.
+  let result = await trawpaw.execute("Your trawpaw source code", "Input when this project requires input (optional)", clearHistory=false /* or true */);
+  if (result["status"] === 1) {
+    console.error(result["message"]);
+  } else {
+    console.log(result["result"]);
+  };
+});
+```
 
 ## Hello World in Trawpaw
 
