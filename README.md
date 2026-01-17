@@ -7,7 +7,22 @@ At least it is an turing complete.
 
 - Python 3.10+
 
-## How to use?
+## How to use trawpaw.py?
+
+```sh
+python trawpaw.py # To open Trawpaw REPL
+python trawpaw.py --help # To show trawpaw usage
+python trawpaw.py filepath # To execute this file
+```
+After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address of this pointer is 0 and `v:0` means there are 0 variables defined.
+
+## Hello World in Trawpaw
+
+```trawpaw
+!##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
+```
+
+## Trawpaw Usage
 
 | Code | Source               | Type          | Usage                                                                 |
 |------|----------------------|---------------|-----------------------------------------------------------------------|
