@@ -3,13 +3,11 @@ At least it is an turing complete.
 
 [Try Trawpaw online](https://tools.liaoxyucm.xyz/trawpaw)
 
-## Requirements
-
-- Python 3.10+
-
 ## How to use trawpaw?
 
 ### Python
+
+To use Trawpaw in Python, we require the version of interpreter at least 3.10
 ```sh
 python trawpaw.py # To open Trawpaw REPL
 python trawpaw.py --help # To show trawpaw usage
