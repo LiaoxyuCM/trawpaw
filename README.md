@@ -52,3 +52,8 @@ After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address o
 
 1. Bracket commands `[ ( {` must be properly closed with \] \) \} respectively
 2. Variablr definition syntax: $\[single char name\]\[variable controller\]
+
+## Thanks
+
+- (Waste)[https://github.com/ChenQingMua/WasteLanguage]
+- Brainfuck
