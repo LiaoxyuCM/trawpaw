@@ -10,7 +10,7 @@ At least it is an turing complete.
 To use Trawpaw in Python, we require the version of interpreter at least 3.10
 ```sh
 python trawpaw.py # To open Trawpaw REPL
-python trawpaw.py --help # To show trawpaw usage
+python trawpaw.py --usage # To show trawpaw usage
 python trawpaw.py filepath # To execute this file
 ```
 After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address of this pointer is 0 and `v:0` means there are 0 variables defined.
