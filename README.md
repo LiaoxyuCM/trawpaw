@@ -23,7 +23,6 @@ After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address o
 import trawpaw;
 executor = trawpaw.Trawpaw();
 result = executor.execute("Your trawpaw source code", "Input when this project requires input (optional)", clearHistory=False); # clearHistory: default value is False
-result = trawpaw.execute(code)
 if trawpaw_result["status"] == 1:
   print(result.get("message", "ERR: Unknown error occurred."))
 else:
