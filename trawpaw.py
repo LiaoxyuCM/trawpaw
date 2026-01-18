@@ -31,7 +31,7 @@ D            :VarController    :Delete variable (used after $[name])
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
-2. Variablr definition syntax: $[single char name][variable controller]
+2. Variable definition syntax: $[single char name][variable controller]
 3. clearHistory=True in execute() resets memories and datalist to initial state
 """
 
@@ -309,4 +309,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
