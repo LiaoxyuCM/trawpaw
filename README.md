@@ -1,5 +1,5 @@
 # Trawpaw
-At least it is an turing complete.
+At least it is a turing complete.
 
 [Try Trawpaw online](https://tools.liaoxyucm.xyz/trawpaw)
 
