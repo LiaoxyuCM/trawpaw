@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 ### Additional Notes
 
 1. Bracket commands `[ ( {` must be properly closed with \] \) \} respectively
-2. Variablr definition syntax: $\[single char name\]\[variable controller\]
+2. Variable definition syntax: $\[single char name\]\[variable controller\]
 
 ## Thanks
 
