@@ -1,4 +1,4 @@
-VERSION: str = "1.1.1"
+VERSION: str = "2.0"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -11,12 +11,13 @@ Code         :Type             :Usage
 -            :                 :Decrement current memory cell value by 1 (mod maxvaluepermem+1)
 *            :                 :Multiply current memory cell value by 2 (mod maxvaluepermem+1)
 /            :                 :Divide current memory cell value by 2 (integer division, mod maxvaluepermem+1)
-#            :                 :Set current memory cell value to 0 (normal) or move cursor to memory 0 (! modifier)
+#            :                 :Set current memory cell value to 0 (normal) or move cursor to memory 0 (! modifier) or clear data (!! modifier)
 <            :                 :Move cursor left by 1 (circular)
 >            :                 :Move cursor right by 1 (circular)
 ,            :                 :Read a character input, store its ASCII code in current cell
 .            :                 :Output cell as ASCII char (normal) or number (! modifier)
-$            :                 :Enter data definition mode (followed by [name][controller])
+$            :                 :Define/Call data (followed by [name][controller], normal) or call module (! modifier)
+@            :                 :Debug (~debug mark)
 _            :                 :Pause execution for 1s (normal) or 0.1s (! modifier)
 &            :                 :Breakpoint for debugging (waits for user input to continue) (normal) Quit program and return result (! modifier)
 !            :Special          :Modify next command's behavior (special mode)
@@ -28,11 +29,18 @@ W            :VarController    :Write current cell value to variable (used after
 R            :VarController    :Read variable value to current cell (used after $[name])
 L            :VarController    :Link variable to current cursor position (used after $[name])
 D            :VarController    :Delete variable (used after $[name])
+F            :VarController    :Define a function
+V            :DebugMark        :Show current list of variables
+C            :DebugMark        :Show current address of cursor
+runbf        :Module           :Run a Brainfuck code stored in a function variable (syntax !$runbf$[var name: function])]
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
-2. Variable definition syntax: $[single char name][variable controller]
-3. clearHistory=True in execute() resets memories and datalist to initial state
+2. Variable definition syntax: "$[one-length char name][variable controller]"
+3. Function syntax: "$[x]f[y][body][y]" x: variable name, y: EOS (End of setence) Character (One length), body: function body
+4. Debug syntax: "@[debug mark]"
+5. Module syntax: "!$[module name]$[variable name]"
+6. clearData=True in execute() resets memories and datalist to initial state
 """
 
 from typing import Literal
@@ -53,27 +61,60 @@ class Trawpaw:
         self.datalist = {}
         self.cursor: int = 0
 
-    def clearHistory(self):
+    def clearData(self):
         self.memories = self.nullmem.copy()
         self.datalist = {}
         self.cursor = 0
 
 
-    def execute(self, code: str, getinput: str = "", clearHistory: bool = False) -> dict:
+    def runBrainfk(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0) -> dict:
+        inputcur: int = 0
+        bracketlist: list[int] = []
+        result: str = ""
+        col:int = startAtCol
+        while col-startAtCol < len(code):
+            match code[col-startAtCol]:
+                case "+":
+                    self.memories[self.cursor] = (self.memories[self.cursor] + 1) % self.maxvaluepermem
+                case "-":
+                    self.memories[self.cursor] = (self.memories[self.cursor] - 1) % self.maxvaluepermem
+                case "<":
+                    self.cursor = (self.cursor - 1) % len(self.memories)
+                case ">":
+                    self.cursor = (self.cursor + 1) % len(self.memories)
+                case ",":
+                    try:
+                        self.memories[self.cursor] = ord(getinput[inputcur]) % self.maxvaluepermem
+                        inputcur += 1
+                    except:
+                        self.memories[self.cursor] = ord(input("Input a character: ")[0]) % self.maxvaluepermem
+                case ".":
+                    result += chr(self.memories[self.cursor])
+                case "[":
+                    bracketlist.append(col)
+                case "]":
+                    if self.memories[self.cursor] != 0:
+                        col = bracketlist[-1]
+                    else:
+                        bracketlist.pop()
+            col += 1
+        if len(bracketlist) != 0:
+            return {"status": 1, "message": f"ERR: Bracket is not closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+        if (clearData):
+            self.clearData()
+        return {"status": 0, "result": result, "cursor": self.cursor, "datalistlength": len(self.datalist)}
+
+    def execute(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0) -> dict:
         inputcur: int = 0
         bracketlist: list[dict] = []
         result: str = ""
-        col:int = 0
+        col:int = startAtCol
         data_definition: bool = False
         special: Literal[0 | 1 | 2] = 0
-        while col < len(code):
-            if special == 1:
-                special = 2
-            elif special == 2:
-                special = 0
+        while col-startAtCol < len(code):
             
             if not data_definition:
-                match code[col]:
+                match code[col-startAtCol]:
                     case "+":
                         self.memories[self.cursor] = (self.memories[self.cursor] + 1) % self.maxvaluepermem
                         special = 0
@@ -87,7 +128,9 @@ class Trawpaw:
                         self.memories[self.cursor] = (self.memories[self.cursor] // 2) % self.maxvaluepermem
                         special = 0
                     case "#":
-                        if special:
+                        if special >= 2:
+                            self.clearData()
+                        elif special == 1:
                             self.cursor = 0
                         else:
                             self.memories[self.cursor] = 0
@@ -113,7 +156,6 @@ class Trawpaw:
                         special = 0
                     case "$":
                         data_definition = True
-                        special = 0
                     case "_":
                         if special:
                             sleep(.1)
@@ -128,7 +170,16 @@ class Trawpaw:
                             input("Breakpoint reached. Press Enter to continue...")
                         special = 0
                     case "!":
-                        special = 1
+                        special += 1
+                    case "@":
+                        col += 1;
+                        if code[col-startAtCol].upper() == "V":
+                            result += str(self.datalist)
+                        elif code[col-startAtCol].upper() == "C":
+                            result += str(self.cursor)
+                        else:
+                            return {"status": 1, "message": "ERR: Invalid debug mark", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        special = 0
                     case "[":
                         bracketlist.append({
                             "bracket": "[",
@@ -141,11 +192,11 @@ class Trawpaw:
                                 token = 1
                                 while token:
                                     col += 1
-                                    if code[col] in ["[", "{", "("]:
+                                    if code[col-startAtCol] in ["[", "{", "("]:
                                         token += 1
-                                    if code[col] in ["]", "}", ")"]:
+                                    if code[col-startAtCol] in ["]", "}", ")"]:
                                         if token == 1:
-                                            if code[col] != "]":
+                                            if code[col-startAtCol] != "]":
                                                 return {"status": 1, "message": f"ERR: This bracket is not properly closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                             else:
                                                 token -= 1
@@ -164,11 +215,11 @@ class Trawpaw:
                                 token = 1
                                 while token:
                                     col += 1
-                                    if code[col] in ["[", "{", "("]:
+                                    if code[col-startAtCol] in ["[", "{", "("]:
                                         token += 1
-                                    if code[col] in ["]", "}", ")"]:
+                                    if code[col-startAtCol] in ["]", "}", ")"]:
                                         if token == 1:
-                                            if code[col] != ")":
+                                            if code[col-startAtCol] != ")":
                                                 return {"status": 1, "message": f"ERR: This bracket is not properly closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                             else:
                                                 token -= 1
@@ -180,11 +231,11 @@ class Trawpaw:
                                 token = 1
                                 while token:
                                     col += 1
-                                    if code[col] in ["[", "{", "("]:
+                                    if code[col-startAtCol] in ["[", "{", "("]:
                                         token += 1
-                                    if code[col] in ["]", "}", ")"]:
+                                    if code[col-startAtCol] in ["]", "}", ")"]:
                                         if token == 1:
-                                            if code[col] != ")":
+                                            if code[col-startAtCol] != ")":
                                                 return {"status": 1, "message": f"ERR: This bracket is not properly closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                             else:
                                                 token -= 1
@@ -202,11 +253,11 @@ class Trawpaw:
                         token = 1
                         while token:
                             col += 1
-                            if code[col] in ["[", "{", "("]:
+                            if code[col-startAtCol] in ["[", "{", "("]:
                                 token += 1
-                            if code[col] in ["]", "}", ")"]:
+                            if code[col-startAtCol] in ["]", "}", ")"]:
                                 if token == 1:
-                                    if code[col] != "}":
+                                    if code[col-startAtCol] != "}":
                                         return {"status": 1, "message": f"ERR: This bracket is not properly closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                     else:
                                         token -= 1
@@ -224,49 +275,105 @@ class Trawpaw:
                             bracketlist[-1]["ranges"] += 1
                         else:
                             bracketlist.pop()
+                        special = 0
             elif data_definition:
-                #Define a single-character data constant, the next character is the data controller I means init and reset W means write R means read
-                name: str = code[col]
-                col += 1
-                controller: str = code[col]
-                if not controller.upper() in ["I", "W", "R", "L", "D"]:
-                    return {"status": 1, "message": f"ERR: Invalid data controller at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                if special:
+                    dofunction = ""
+                    while code[col-startAtCol] != "$":
+                        dofunction += code[col-startAtCol]
+                        col += 1
+                    if dofunction == "runbf":
+                        col += 1
+                        name = code[col-startAtCol]
+                        try:
+                            if self.datalist[name]["type"] == "function":
+                                function_result = self.runBrainfk(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"])
+                                if function_result["status"] == 1:
+                                    return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                else:
+                                    result += function_result["result"]
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        except:
+                            return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    else:
+                        return {"status": 1, "message": f"ERR: Unknown module at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    special = 0
                 else:
-                    match controller.upper():
-                        case "I":
-                            self.datalist[name] = {
-                                "type": "number",
-                                "value": 0
-                            }
-                        case "W":
-                            try:
-                                self.datalist[name]["type"] = "number"
-                                self.datalist[name]["value"] = self.memories[self.cursor]
-                            except:
-                                return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-                        case "R":
-                            try:
-                                if self.datalist[name]["type"] == "number":
-                                    self.memories[self.cursor] = self.datalist[name]["value"]
-                                elif self.datalist[name]["type"] == "linkmemory":
-                                    self.memories[self.cursor] = self.memories[self.datalist[name]["value"]]
-                            except:
-                                return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-                        case "L":
-                            self.datalist[name]["type"] = "linkmemory"
-                            self.datalist[name]["value"] = self.cursor
-                        case "D":
-                            # delete data
-                            try:
-                                del self.datalist[name]
-                            except:
-                                return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    #Define a single-character data constant, the next character is the data controller I means init and reset W means write R means read
+                    name: str = code[col-startAtCol]
+                    col += 1
+                    controller: str = code[col-startAtCol]
+                    if not controller.upper() in ["I", "W", "R", "L", "D", "F"]:
+                        #F for function definition (not implemented yet)
+                        return {"status": 1, "message": f"ERR: Invalid data controller at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    else:
+                        match controller.upper():
+                            case "I":
+                                self.datalist[name] = {
+                                    "type": "number",
+                                    "value": 0
+                                }
+                            case "W":
+                                try:
+                                    self.datalist[name]["type"] = "number"
+                                    self.datalist[name]["value"] = self.memories[self.cursor]
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            case "R":
+                                try:
+                                    if self.datalist[name]["type"] == "number":
+                                        self.memories[self.cursor] = self.datalist[name]["value"]
+                                    elif self.datalist[name]["type"] == "linkmemory":
+                                        self.memories[self.cursor] = self.memories[self.datalist[name]["value"]]
+                                    elif self.datalist[name]["type"] == "function":
+                                        function_result = self.execute(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"])
+                                        if function_result["status"] == 1:
+                                            return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                        else:
+                                            result += function_result["result"]
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            case "L":
+                                try:
+                                    self.datalist[name]["type"] = "linkmemory"
+                                    self.datalist[name]["value"] = self.cursor
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            case "D":
+                                # delete data
+                                try:
+                                    del self.datalist[name]
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            case "F":
+                                try:
+                                    col += 1
+
+                                    # next, we receive a character.
+                                    end_char = code[col-startAtCol]
+                                    function_body = ""
+                                    self.datalist[name]["startAtCol"] = col+1
+                                    if end_char in ["{", "[", "(", ")", "]", "}"]:
+                                        return {"status": 1, "message": "Invalid EOS (End Of setence) character", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                    else:
+                                        while True:
+                                            col += 1
+                                            if code[col-startAtCol] == end_char:
+                                                break
+                                            else:
+                                                function_body += code[col-startAtCol]
+                                        
+                                        self.datalist[name]["type"] = "function";
+                                        self.datalist[name]["value"] = function_body;
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+
                 data_definition = False
-                #col += 1
-                
+                    #col += 1
             col += 1
-        if (clearHistory):
-            self.clearHistory()
+        if (clearData):
+            self.clearData()
         return {"status": 0, "result": result, "cursor": self.cursor, "datalistlength": len(self.datalist)}
 
 
@@ -288,7 +395,10 @@ def main():
         with open(args.file, "r", encoding="utf-8") as f:
             code: str = f.read()
             trawpaw_result = trawpaw.execute(code)
-            print(trawpaw_result.get("result", ""))
+            if trawpaw_result["status"] == 1:
+                print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
+            else:
+                print(trawpaw_result.get("result", ""))
             f.close()
         quit()
     else:
@@ -309,5 +419,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
