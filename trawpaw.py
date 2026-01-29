@@ -228,8 +228,9 @@ class Trawpaw:
 
         # Save result to datalist
         try:
+            self.memories[self.cursor] = ptr
             self.datalist[saveto]["type"] = "number"
-            self.datalist[saveto]["value"] = ptr
+            self.datalist[saveto]["value"] = saved
             return {"status": 0, "result": out, "cursor": self.cursor, "datalistlength": len(self.datalist)}
         except:
             return {"status": 1, "message": f"ERR: Data '{saveto}' is not initialized.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
@@ -571,3 +572,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
