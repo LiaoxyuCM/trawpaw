@@ -1,4 +1,4 @@
-VERSION: str = "2.0"
+VERSION: str = "3.0"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -32,15 +32,20 @@ D            :VarController    :Delete variable (used after $[name])
 F            :VarController    :Define a function
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
-runbf        :Module           :Run a Brainfuck code stored in a function variable (syntax !$runbf$[var name: function])]
+runbf        :Module           :Run a Brainfuck code stored in a function variable 
++-----  $runbf[bf_code: variable<function>]
+runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
++-----  $runwaste[waste_code: variable<function>][result_var: variable]
+
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
 2. Variable definition syntax: "$[one-length char name][variable controller]"
 3. Function syntax: "$[x]f[y][body][y]" x: variable name, y: EOS (End of setence) Character (One length), body: function body
 4. Debug syntax: "@[debug mark]"
-5. Module syntax: "!$[module name]$[variable name]"
-6. clearData=True in execute() resets memories and datalist to initial state
+5. clearData=True in execute() resets memories and datalist to initial state
+
+6. Variable in module calling must syntaxed "$[name]" (no controller)
 """
 
 from typing import Literal
@@ -67,7 +72,7 @@ class Trawpaw:
         self.cursor = 0
 
 
-    def runBrainfk(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0) -> dict:
+    def runBrainfk(self, code: str, getinput: str = "", startAtCol: int = 0) -> dict:
         inputcur: int = 0
         bracketlist: list[int] = []
         result: str = ""
@@ -100,9 +105,135 @@ class Trawpaw:
             col += 1
         if len(bracketlist) != 0:
             return {"status": 1, "message": f"ERR: Bracket is not closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-        if (clearData):
-            self.clearData()
         return {"status": 0, "result": result, "cursor": self.cursor, "datalistlength": len(self.datalist)}
+    
+    def runWaste(self, code: str, saveto: str, startAtCol: int = 0):
+        """
+        Waste esolang executor, ported from JS, using match-case.
+        """
+        saved: int = 0
+        ptr: int = self.memories[self.cursor]
+        try:
+            saved = self.datalist.get(saveto, 0)
+        except:
+            return {"status": 1, "message": f"ERR: Data '{saveto}' is not initialized.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+        out: str = ""
+        bracketStack = []
+        col:int = startAtCol
+        while col-startAtCol < len(code):
+            match code[col-startAtCol]:
+                case '＜' | '<':
+                    saved = ptr
+                case '＞' | '>':
+                    ptr = saved
+                case '＾' | '^':
+                    ptr = 0 if randint(0, 1) == 0 else 1
+                case '＠' | '@':
+                    out = ""
+                case '，' | ',':
+                    out += code[col-startAtCol+1:]
+                    break
+                case '＃' | '#':
+                    ptr = 0
+                case '＋' | '+':
+                    if isinstance(ptr, int):
+                        ptr += 1
+                case '－' | '-':
+                    if isinstance(ptr, int):
+                        ptr -= 1
+                case '＊' | '*':
+                    if isinstance(ptr, int):
+                        ptr *= 2
+                case '／' | '/':
+                    if isinstance(ptr, int):
+                        ptr //= 2
+                case '％' | '%':
+                    out += str(ptr)
+                case '＆' | '&':
+                    input("Breakpoint reached. Press Enter to continue...")
+                case '．' | '.':
+                    try:
+                        out += chr(ptr)
+                    except Exception:
+                        out += '?'
+                case '：' | ':':
+                    out += '\n'
+                case '？' | '?':
+                    sleep(1)
+                case '！' | '!':
+                    return {"status": 2, "result": out, "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                case '［' | '[':
+                    bracketStack.append({'type': ']', 'position': col, 'currranges': 0})
+                case '］' | ']':
+                    if not bracketStack or bracketStack[-1]['type'] != ']':
+                        return {"status": 1, "message": f"Unmatched closing bracket at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    else:
+                        if bracketStack[-1]['currranges'] > 0:
+                            bracketStack.pop()
+                        else:
+                            bracketStack[-1]['currranges'] += 1
+                            col = bracketStack[-1]['position']
+                case '（' | '(':
+                    bracketStack.append({'type': ')', 'position': col})
+                    # 50% chance skip all inside
+                    if randint(0, 1) == 0:
+                        innerBrackets = [{'type': '(', 'position': col}]
+                        while innerBrackets:
+                            col += 1
+                            if col-startAtCol >= len(code):
+                                return {"status": 1, "message": "Unclosed bracket", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            c = code[col-startAtCol]
+                            match c:
+                                case '（' | '(':
+                                    innerBrackets.append({'type': '(', 'position': col})
+                                case '｛' | '{':
+                                    innerBrackets.append({'type': '}', 'position': col})
+                                case '［' | '[':
+                                    innerBrackets.append({'type': ']', 'position': col})
+                                case '）' | ')' | '］' | ']' | '｝' | '}':
+                                    lb = innerBrackets.pop()
+                                    if not innerBrackets:
+                                        if lb['type'] != ')':
+                                            return {"status": 1, "message": f"Mismatched brackets at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                case '）' | ')':
+                    if not bracketStack or bracketStack[-1]['type'] != ')':
+                        return {"status": 1, "message": f"Unmatched closing bracket at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    else:
+                        bracketStack.pop()
+                case '｛' | '{':
+                    innerBrackets = [{'type': '{', 'position': col}]
+                    while innerBrackets:
+                        col += 1
+                        if col-startAtCol >= len(code):
+                            return {"status": 1, "message": f"Unclosed bracket at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        c = code[col-startAtCol]
+                        match c:
+                            case '（' | '(':
+                                innerBrackets.append({'type': '(', 'position': col})
+                            case '｛' | '{':
+                                innerBrackets.append({'type': '}', 'position': col})
+                            case '［' | '[':
+                                innerBrackets.append({'type': ']', 'position': col})
+                            case '）' | ')' | '］' | ']' | '｝' | '}':
+                                lb = innerBrackets.pop()
+                                if not innerBrackets:
+                                    if lb['type'] != '}':
+                                        return {"status": 1, "message": f"Mismatched brackets at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                case '｝' | '}':
+                    if not bracketStack or bracketStack[-1]['type'] != '}':
+                        return {"status": 1, "message": f"Unmatched closing bracket at position {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    else:
+                        bracketStack.pop()
+            col += 1
+
+        # Save result to datalist
+        try:
+            self.datalist[saveto]["type"] = "number"
+            self.datalist[saveto]["value"] = ptr
+            return {"status": 0, "result": out, "cursor": self.cursor, "datalistlength": len(self.datalist)}
+        except:
+            return {"status": 1, "message": f"ERR: Data '{saveto}' is not initialized.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+
 
     def execute(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0) -> dict:
         inputcur: int = 0
@@ -296,6 +427,27 @@ class Trawpaw:
                                 return {"status": 1, "message": f"ERR: Variable must be a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         except:
                             return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    elif dofunction == "runwaste":
+                        col += 1
+                        name = code[col-startAtCol]
+                        col += 1
+                        if code[col-startAtCol] != "$":
+                            return {"status": 1, "message": f"ERR: Invalid waste module call syntax at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            col += 1
+                            varname = code[col-startAtCol]
+                            try:
+                                if self.datalist[name]["type"] == "function":
+                                    function_result = self.runWaste(self.datalist[name]["value"], varname, startAtCol=self.datalist[name]["startAtCol"])
+                                    if function_result["status"] == 1:
+                                        return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                    else:
+                                        result += function_result["result"]
+                                else:
+                                    return {"status": 1, "message": f"ERR: Variable must be a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            except:
+                                return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+
                     else:
                         return {"status": 1, "message": f"ERR: Unknown module at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     special = 0
