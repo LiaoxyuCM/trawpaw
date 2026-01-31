@@ -1,4 +1,4 @@
-VERSION: str = "3.0"
+VERSION: str = "3.1"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -583,7 +583,6 @@ def main():
         code = input("[c:0 v:0] ")
         while True:
             try:
-                print(highlighter(code))
                 trawpaw_result = trawpaw.execute(code)
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
