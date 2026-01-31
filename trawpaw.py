@@ -52,6 +52,32 @@ from typing import Literal
 from random import randint
 from time import sleep
 
+class Colors:
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    WHITE = '\033[37m'
+    
+    BG_BLACK = '\033[40m'
+    BG_RED = '\033[41m'
+    BG_GREEN = '\033[42m'
+    BG_YELLOW = '\033[43m'
+    BG_BLUE = '\033[44m'
+    BG_MAGENTA = '\033[45m'
+    BG_CYAN = '\033[46m'
+    BG_WHITE = '\033[47m'
+    
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    BLINK = '\033[5m'
+    REVERSE = '\033[7m'
+    
+    RESET = '\033[0m'
+
 class Trawpaw:
     def __init__(self, memories: Literal[128 | 1024 | 65536] = 128, maxvaluepermem: Literal[127 | 1023 | 65535] = 127) -> None:
         self.memories: list[int] = []
@@ -507,18 +533,15 @@ class Trawpaw:
                                     end_char = code[col-startAtCol]
                                     function_body = ""
                                     self.datalist[name]["startAtCol"] = col+1
-                                    if end_char in ["{", "[", "(", ")", "]", "}"]:
-                                        return {"status": 1, "message": "Invalid EOS (End Of setence) character", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-                                    else:
-                                        while True:
-                                            col += 1
-                                            if code[col-startAtCol] == end_char:
-                                                break
-                                            else:
-                                                function_body += code[col-startAtCol]
-                                        
-                                        self.datalist[name]["type"] = "function";
-                                        self.datalist[name]["value"] = function_body;
+                                    while True:
+                                        col += 1
+                                        if code[col-startAtCol] == end_char:
+                                            break
+                                        else:
+                                            function_body += code[col-startAtCol]
+                                    
+                                    self.datalist[name]["type"] = "function";
+                                    self.datalist[name]["value"] = function_body;
                                 except:
                                     return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
 
@@ -560,6 +583,7 @@ def main():
         code = input("[c:0 v:0] ")
         while True:
             try:
+                print(highlighter(code))
                 trawpaw_result = trawpaw.execute(code)
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
