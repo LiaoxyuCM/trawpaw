@@ -1,13 +1,11 @@
 # Trawpaw
 At least it is a turing complete.
 
-**We no longer provide support for Trawpaw JavaScript. Please use Trawpaw Python**
-
-[Try Trawpaw online](https://tools.liaoxyucm.xyz/trawpaw)
-
-## How to use trawpaw?
+## Usage
 
 ### Python
+
+Version: see `trawpaw.VERSION`
 
 #### Use our cli
 
@@ -33,6 +31,11 @@ else:
 ```
 
 ### JavaScript (Front-end)
+
+**We no longer provide support for Trawpaw JavaScript. Please use Trawpaw Python**
+
+Version: 1.1.1
+
 ```js
 import { Trawpaw } from "./trawpaw.js";
 document.addEventListener("DOMContentLoaded", async() => {
@@ -53,12 +56,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 !##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
 ```
 
-### Additional Notes
-
-1. Bracket commands `[ ( {` must be properly closed with \] \) \} respectively
-2. Variable definition syntax: $\[single char name\]\[variable controller\]
-
 ## Thanks
 
-- [Waste](https://github.com/ChenQingMua/WasteLanguage)
-- Brainfuck
+- [Waste](https://github.com/ChenQingMua/WasteLanguage-Preview)
+- Brainf\*\*k
