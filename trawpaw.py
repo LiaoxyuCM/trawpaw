@@ -1,4 +1,4 @@
-VERSION: str = "3.1"
+VERSION: str = "3.2"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -424,7 +424,9 @@ class Trawpaw:
                         bracketlist.pop()
                         special = 0
                     case "]":
-                        if bracketlist[-1]["bracket"] != "[":
+                        if not bracketlist:
+                            return {"status": 1, "message": f"ERR: This bracket is not properly opened at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        elif bracketlist[-1]["bracket"] != "[":
                             return {"status": 1, "message": f"ERR: This bracket is not properly closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         elif bracketlist[-1]["special"]:
                             pass
@@ -559,10 +561,12 @@ def main():
     parser = ArgumentParser(usage="trawpaw.py [options] <file>", description="Trawpaw Interpreter v" + VERSION, formatter_class=RawTextHelpFormatter)
     parser.add_argument("--usage", '-u', action="store_true", help="Show usage information and quit.")
     parser.add_argument("file", nargs="?", help="Path to the Trawpaw source code file.")
+    parser.add_argument("--memories", '-m', type=int, default=128, choices=[128, 1024, 65536], help="Number of memory cells to use (default: 128).")
+    parser.add_argument("--maxvaluepermem", '-v', type=int, default=127, choices=[127, 1023, 65535], help="Maximum value per memory cell (default: 127).")
     
     args: Namespace = parser.parse_args()
 
-    trawpaw = Trawpaw()
+    trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
     
     if args.usage:
         print(DOCUMENT)
