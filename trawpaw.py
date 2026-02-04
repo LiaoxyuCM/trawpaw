@@ -551,7 +551,7 @@ class Trawpaw:
                     #col += 1
             col += 1
         if bracketlist:
-            return {"status": 1, "message": f"ERR: Bracket is not closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}''
+            return {"status": 1, "message": f"ERR: Bracket is not closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
         if (clearData):
             self.clearData()
         return {"status": 0, "result": result, "cursor": self.cursor, "datalistlength": len(self.datalist)}
