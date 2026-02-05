@@ -11,7 +11,7 @@ Code         :Type             :Usage
 -            :                 :Decrement current memory cell value by 1 (mod maxvaluepermem+1)
 *            :                 :Multiply current memory cell value by 2 (mod maxvaluepermem+1)
 /            :                 :Divide current memory cell value by 2 (integer division, mod maxvaluepermem+1)
-#            :                 :Set current memory cell value to 0 (normal) or move cursor to memory 0 (! modifier) or clear data (!! modifier)
+#            :                 :Set current memory cell value to 0 (normal) or move cursor to memory 0 (! modifier) or clear data (including variables) (!! modifier)
 <            :                 :Move cursor left by 1 (circular)
 >            :                 :Move cursor right by 1 (circular)
 ,            :                 :Read a character input, store its ASCII code in current cell
