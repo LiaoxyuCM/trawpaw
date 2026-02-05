@@ -33,9 +33,9 @@ F            :VarController    :Define a function
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
 runbf        :Module           :Run a Brainfuck code stored in a function variable 
-+-----  $runbf[bf_code: variable<function>]
++-----  !$runbf[bf_code: variable<function>]
 runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
-+-----  $runwaste[waste_code: variable<function>][result_var: variable]
++-----  !$runwaste[waste_code: variable<function>][save_store_to: variable]
 
 ------------------------------
 ADDITIONAL NOTES:
