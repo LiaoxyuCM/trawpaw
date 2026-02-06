@@ -1,4 +1,4 @@
-VERSION: str = "3.2"
+VERSION: str = "4.0"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -29,13 +29,18 @@ W            :VarController    :Write current cell value to variable (used after
 R            :VarController    :Read variable value to current cell (used after $[name])
 L            :VarController    :Link variable to current cursor position (used after $[name])
 D            :VarController    :Delete variable (used after $[name])
-F            :VarController    :Define a function
+F            :VarController    :Define a function (used after $[name])
+S            :VarController    :Define a string variable (used after $[name])
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
-runbf        :Module           :Run a Brainfuck code stored in a function variable 
+runbf        :Module           :Run a Brainfuck code stored in a function variable
 +-----  !$runbf[bf_code: variable<function>]
 runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
-+-----  !$runwaste[waste_code: variable<function>][save_store_to: variable]
++-----  !$runwaste[waste_code: variable<function>][save_store_to: variable<any>]
+include      :Module           :Include and run a Trawpaw code from a file (influences current data)
++-----  !$include[file_path: variable<string>]
+virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code from a file (isolated data)
++-----  !$virtual[file_path: variable<string>]
 
 ------------------------------
 ADDITIONAL NOTES:
@@ -52,31 +57,6 @@ from typing import Literal
 from random import randint
 from time import sleep
 
-class Colors:
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    
-    BG_BLACK = '\033[40m'
-    BG_RED = '\033[41m'
-    BG_GREEN = '\033[42m'
-    BG_YELLOW = '\033[43m'
-    BG_BLUE = '\033[44m'
-    BG_MAGENTA = '\033[45m'
-    BG_CYAN = '\033[46m'
-    BG_WHITE = '\033[47m'
-    
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    BLINK = '\033[5m'
-    REVERSE = '\033[7m'
-    
-    RESET = '\033[0m'
 
 class Trawpaw:
     def __init__(self, memories: Literal[128 | 1024 | 65536] = 128, maxvaluepermem: Literal[127 | 1023 | 65535] = 127) -> None:
@@ -476,7 +456,47 @@ class Trawpaw:
                                     return {"status": 1, "message": f"ERR: Variable must be a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                             except:
                                 return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-
+                    elif dofunction == "include":
+                        col += 1
+                        varname = code[col-startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                try:
+                                    with open(self.datalist[varname]["value"], "r", encoding="utf-8") as f:
+                                        include_code = f.read()
+                                        f.close()
+                                    function_result = self.execute(include_code, startAtCol=0)
+                                    if function_result["status"] == 1:
+                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]["value"]}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                    else:
+                                        result += function_result["result"]
+                                except FileNotFoundError:
+                                    return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    elif dofunction == "virtual":
+                        col += 1
+                        varname = code[col-startAtCol]
+                        another_trawpaw_object = Trawpaw(len(self.memories), self.maxvaluepermem-1)
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                try:
+                                    with open(self.datalist[varname]["value"], "r", encoding="utf-8") as f:
+                                        include_code = f.read()
+                                        f.close()
+                                    function_result = another_trawpaw_object.execute(include_code, startAtCol=0)
+                                    if function_result["status"] == 1:
+                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]["value"]}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                    else:
+                                        result += function_result["result"]
+                                except FileNotFoundError:
+                                    return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
                         return {"status": 1, "message": f"ERR: Unknown module at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     special = 0
@@ -544,6 +564,25 @@ class Trawpaw:
                                     
                                     self.datalist[name]["type"] = "function";
                                     self.datalist[name]["value"] = function_body;
+                                except:
+                                    return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            case "S":
+                                try:
+                                    col += 1
+
+                                    # next, we receive a character.
+                                    end_char = code[col-startAtCol]
+                                    string_body = ""
+                                    self.datalist[name]["startAtCol"] = col+1
+                                    while True:
+                                        col += 1
+                                        if code[col-startAtCol] == end_char:
+                                            break
+                                        else:
+                                            string_body += code[col-startAtCol]
+                                    
+                                    self.datalist[name]["type"] = "string";
+                                    self.datalist[name]["value"] = string_body;
                                 except:
                                     return {"status": 1, "message": f"ERR: Data '{name}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
 

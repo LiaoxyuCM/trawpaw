@@ -5,7 +5,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: see `trawpaw.VERSION`
+Version: 4.0
 
 #### Use our cli
 
