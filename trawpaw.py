@@ -505,7 +505,7 @@ class Trawpaw:
                     name: str = code[col-startAtCol]
                     col += 1
                     controller: str = code[col-startAtCol]
-                    if not controller.upper() in ["I", "W", "R", "L", "D", "F"]:
+                    if not controller.upper() in ["I", "W", "R", "L", "D", "F", "S"]:
                         #F for function definition (not implemented yet)
                         return {"status": 1, "message": f"ERR: Invalid data controller at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
