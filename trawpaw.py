@@ -1,4 +1,4 @@
-VERSION: str = "4.0"
+VERSION: str = "4.1"
 DOCUMENT: str = """
 REQUIREMENTS:
 
@@ -39,18 +39,18 @@ runwaste     :Module           :Run a Waste code stored in a function variable, 
 +-----  !$runwaste[waste_code: variable<function>][save_store_to: variable<any>]
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
 +-----  !$include[file_path: variable<string>]
-virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code from a file (isolated data)
-+-----  !$virtual[file_path: variable<string>]
+virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code <typeof variable is function> or from a file <typeof variable is string> (isolated data)
++-----  !$virtual[file_path: variable<string | function>]
 
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
 2. Variable definition syntax: "$[one-length char name][variable controller]"
-3. Function syntax: "$[x]f[y][body][y]" x: variable name, y: EOS (End of setence) Character (One length), body: function body
+3. Function syntax & String syntax: "$[x]["f"|"s"][y][body][y]" x: variable name, y: EOS (End of setence) Character (One length), body: function body
 4. Debug syntax: "@[debug mark]"
 5. clearData=True in execute() resets memories and datalist to initial state
-
 6. Variable in module calling must syntaxed "$[name]" (no controller)
+
 """
 
 from typing import Literal
@@ -493,8 +493,15 @@ class Trawpaw:
                                         result += function_result["result"]
                                 except FileNotFoundError:
                                     return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                            elif self.datalist[varname]["type"] == "function":
+                                include_code = self.datalist[varname]["value"]
+                                function_result = another_trawpaw_object.execute(include_code, startAtCol=self.datalist[varname]["startAtCol"])
+                                if function_result["status"] == 1:
+                                    return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                else:
+                                    result += function_result["result"]
                             else:
-                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                return {"status": 1, "message": f"ERR: Variable must be a string or a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         else:
                             return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
@@ -573,7 +580,6 @@ class Trawpaw:
                                     # next, we receive a character.
                                     end_char = code[col-startAtCol]
                                     string_body = ""
-                                    self.datalist[name]["startAtCol"] = col+1
                                     while True:
                                         col += 1
                                         if code[col-startAtCol] == end_char:
