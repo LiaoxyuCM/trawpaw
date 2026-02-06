@@ -40,7 +40,7 @@ runwaste     :Module           :Run a Waste code stored in a function variable, 
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
 +-----  !$include[file_path: variable<string>]
 virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code <typeof variable is function> or from a file <typeof variable is string> (isolated data)
-+-----  !$virtual[file_path: variable<string | function>]
++-----  !$virtual[code_or_filepath: variable<string | function>]
 
 ------------------------------
 ADDITIONAL NOTES:
