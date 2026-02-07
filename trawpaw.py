@@ -70,7 +70,6 @@ class TrawpawExecutionMethod(enum.Enum):
     storeInResult = 1
 
 class Trawpaw:
-
     def __init__(self, memories: int = 128, maxvaluepermem: int = 127) -> None:
         assert memories > 0, "Number of memories must be greater than 0."
         assert maxvaluepermem >= 0, "Max value per memory must be greater than or equals 0."
@@ -551,7 +550,7 @@ class Trawpaw:
                                     sys.stdout.flush()
                                 result += self.datalist[varname]["value"]
                             else:
-                                return {"status": 1, "message": f"ERR: Variable must be a string or a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         else:
                             return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
