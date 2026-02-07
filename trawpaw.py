@@ -56,10 +56,10 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "4.3"
+VERSION: str = "4.4"
 from random import randint
 from time import sleep
-
+import sys
 
 class Trawpaw:
     def __init__(self, memories: int = 128, maxvaluepermem: int = 127) -> None:
@@ -633,11 +633,11 @@ def main():
         trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
     except AssertionError as e:
         print(f"ERR: {e}")
-        quit()
+        sys.exit(1)
     
     if args.usage:
         print(__doc__)
-        quit()
+        sys.exit(0)
     elif args.file:
         with open(args.file, "r", encoding="utf-8") as f:
             code: str = f.read()
@@ -647,7 +647,7 @@ def main():
             else:
                 print(trawpaw_result.get("result", ""))
             f.close()
-        quit()
+        sys.exit(0)
     else:
         try:
             print("Run `python trawpaw.py --usage` for more information")
@@ -662,7 +662,7 @@ def main():
                 code = input(f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] ")
         except KeyboardInterrupt:
             print("\nExiting Trawpaw REPL.")
-            quit(0)
+            sys.exit(0)
 
 if __name__ == "__main__":
     main()
