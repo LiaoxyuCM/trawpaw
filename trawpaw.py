@@ -56,14 +56,18 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "4.2"
-from typing import Literal
+VERSION: str = "4.3"
 from random import randint
 from time import sleep
 
 
 class Trawpaw:
-    def __init__(self, memories: Literal[128 | 1024 | 65536] = 128, maxvaluepermem: Literal[127 | 1023 | 65535] = 127) -> None:
+    def __init__(self, memories: int = 128, maxvaluepermem: int = 127) -> None:
+        assert memories > 0, "Number of memories must be greater than 0."
+        assert maxvaluepermem >= 0, "Max value per memory must be greater than or equals 0."
+        assert memories <= 65536, "Number of memories must be less than or equals 65536."
+        assert maxvaluepermem < 65536, "Max value per memory must be less than 65536."
+
         self.memories: list[int] = []
         self.nullmem: list[int] = []
 
@@ -256,7 +260,7 @@ class Trawpaw:
         result: str = ""
         col:int = startAtCol
         data_definition: bool = False
-        special: Literal[0 | 1 | 2] = 0
+        special: int = 0
         while col-startAtCol < len(code):
             
             if not data_definition:
@@ -292,7 +296,11 @@ class Trawpaw:
                             self.memories[self.cursor] = ord(getinput[inputcur]) % self.maxvaluepermem
                             inputcur += 1
                         except:
-                            self.memories[self.cursor] = ord(input("Input a character: ")[0]) % self.maxvaluepermem
+                            original_input = input("[input<char>] ")
+                            if original_input:
+                                self.memories[self.cursor] = ord(original_input[0]) % self.maxvaluepermem
+                            else:
+                                self.memories[self.cursor] = 0
                         special = 0
                     case ".":
                         if special:
@@ -616,12 +624,16 @@ def main():
     parser = ArgumentParser(usage="trawpaw.py [options] <file>", description="Trawpaw Interpreter v" + VERSION, formatter_class=RawTextHelpFormatter)
     parser.add_argument("--usage", '-u', action="store_true", help="Show usage information and quit.")
     parser.add_argument("file", nargs="?", help="Path to the Trawpaw source code file.")
-    parser.add_argument("--memories", '-m', type=int, default=128, choices=[128, 1024, 65536], help="Number of memory cells to use (default: 128).")
-    parser.add_argument("--maxvaluepermem", '-v', type=int, default=127, choices=[127, 1023, 65535], help="Maximum value per memory cell (default: 127).")
+    parser.add_argument("--memories", '-m', type=int, default=128, help="Number of memory cells to use (1 <= memories <= 65536) (default: 128).")
+    parser.add_argument("--maxvaluepermem", '-v', type=int, default=127, help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).")
     
     args: Namespace = parser.parse_args()
-
-    trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
+    trawpaw: Trawpaw
+    try:
+        trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
+    except AssertionError as e:
+        print(f"ERR: {e}")
+        quit()
     
     if args.usage:
         print(__doc__)
@@ -637,20 +649,20 @@ def main():
             f.close()
         quit()
     else:
-        print("Run `python trawpaw.py --usage` for more information")
-        print("Press Ctrl+C to exit.")
-        code = input("[c:0 v:0] ")
-        while True:
-            try:
+        try:
+            print("Run `python trawpaw.py --usage` for more information")
+            print("Press Ctrl+C to exit.")
+            code = input("[c:0 v:0] ")
+            while True:
                 trawpaw_result = trawpaw.execute(code)
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
                 else:
                     print(trawpaw_result.get("result", ""))
                 code = input(f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] ")
-            except KeyboardInterrupt:
-                print("\nExiting Trawpaw REPL.")
-                break
+        except KeyboardInterrupt:
+            print("\nExiting Trawpaw REPL.")
+            quit(0)
 
 if __name__ == "__main__":
     main()
