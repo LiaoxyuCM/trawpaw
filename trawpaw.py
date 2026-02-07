@@ -45,6 +45,9 @@ include      :Module           :Include and run a Trawpaw code from a file (infl
 virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code <typeof variable is function> or from a file <typeof variable is string> (isolated data)
 | Syntax: `!$virtual[code_or_filepath: variable<string | function>]`
 
+print        :Module           :Print a string variable
+| Syntax: `!$print[variable<string>]`
+
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
@@ -538,6 +541,19 @@ class Trawpaw:
                                 return {"status": 1, "message": f"ERR: Variable must be a string or a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         else:
                             return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    elif dofunction == "print":
+                        col += 1
+                        varname = code[col-startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                if execution_method == TrawpawExecutionMethod.printManually:
+                                    print(self.datalist[varname]["value"], end="")
+                                    sys.stdout.flush()
+                                result += self.datalist[varname]["value"]
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a string or a function at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
                         return {"status": 1, "message": f"ERR: Unknown module at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     special = 0
@@ -547,7 +563,6 @@ class Trawpaw:
                     col += 1
                     controller: str = code[col-startAtCol]
                     if not controller.upper() in ["I", "W", "R", "L", "D", "F", "S"]:
-                        #F for function definition (not implemented yet)
                         return {"status": 1, "message": f"ERR: Invalid data controller at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                     else:
                         match controller.upper():
@@ -660,10 +675,11 @@ def main():
         with open(args.file, "r", encoding="utf-8") as f:
             code: str = f.read()
             trawpaw_result = trawpaw.execute(code)
+            print(end="\n")
             if trawpaw_result["status"] == 1:
                 print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
-            else:
-                print(trawpaw_result.get("result", ""))
+            # else:
+            #     print(trawpaw_result.get("result", ""))
             f.close()
         sys.exit(0)
     else:
@@ -673,10 +689,11 @@ def main():
             code = input("[c:0 v:0] ")
             while True:
                 trawpaw_result = trawpaw.execute(code)
+                print(end="\n")
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
-                else:
-                    print(trawpaw_result.get("result", ""))
+                # else:
+                #     print(trawpaw_result.get("result", ""))
                 code = input(f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] ")
         except KeyboardInterrupt:
             print("\nExiting Trawpaw REPL.")
