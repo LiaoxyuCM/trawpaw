@@ -56,12 +56,18 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "4.4"
+VERSION: str = "4.4_1"
 from random import randint
 from time import sleep
-import sys
+import sys, enum
+
+
+class TrawpawExecutionMethod(enum.Enum):
+    printManually = 0
+    storeInResult = 1
 
 class Trawpaw:
+
     def __init__(self, memories: int = 128, maxvaluepermem: int = 127) -> None:
         assert memories > 0, "Number of memories must be greater than 0."
         assert maxvaluepermem >= 0, "Max value per memory must be greater than or equals 0."
@@ -254,7 +260,7 @@ class Trawpaw:
             return {"status": 1, "message": f"ERR: Data '{saveto}' is not initialized.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
 
 
-    def execute(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0) -> dict:
+    def execute(self, code: str, getinput: str = "", execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually, clearData: bool = False, startAtCol: int = 0) -> dict:
         inputcur: int = 0
         bracketlist: list[dict] = []
         result: str = ""
@@ -304,8 +310,14 @@ class Trawpaw:
                         special = 0
                     case ".":
                         if special:
+                            if execution_method == TrawpawExecutionMethod.printManually:
+                                print(str(self.memories[self.cursor]), end="")
+                                sys.stdout.flush() # F**k your IO buffer
                             result += str(self.memories[self.cursor])
                         else:
+                            if execution_method == TrawpawExecutionMethod.printManually:
+                                print(chr(self.memories[self.cursor]), end="")
+                                sys.stdout.flush()
                             result += chr(self.memories[self.cursor])
                         special = 0
                     case "$":
@@ -328,8 +340,14 @@ class Trawpaw:
                     case "@":
                         col += 1;
                         if code[col-startAtCol].upper() == "V":
+                            if execution_method == TrawpawExecutionMethod.printManually:
+                                print(str(self.datalist), end="")
+                                sys.stdout.flush()
                             result += str(self.datalist)
                         elif code[col-startAtCol].upper() == "C":
+                            if execution_method == TrawpawExecutionMethod.printManually:
+                                print(str(self.cursor), end="")
+                                sys.stdout.flush()
                             result += str(self.cursor)
                         else:
                             return {"status": 1, "message": "ERR: Invalid debug mark", "cursor": self.cursor, "datalistlength": len(self.datalist)}
@@ -505,8 +523,8 @@ class Trawpaw:
                                     function_result = another_trawpaw_object.execute(include_code, startAtCol=0)
                                     if function_result["status"] == 1:
                                         return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]["value"]}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
-                                    else:
-                                        result += function_result["result"]
+                                    # else:
+                                    #     result += function_result["result"]
                                 except FileNotFoundError:
                                     return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                             elif self.datalist[varname]["type"] == "function":
