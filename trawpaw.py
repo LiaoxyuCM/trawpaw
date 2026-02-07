@@ -683,7 +683,7 @@ def main():
         sys.exit(0)
     else:
         try:
-            print("Run `python trawpaw.py --usage` for more information")
+            print("Run `~ --usage` (~ means trawpaw src) for more information")
             print("Press Ctrl+C to exit.")
             code = input("[c:0 v:0] ")
             while True:
