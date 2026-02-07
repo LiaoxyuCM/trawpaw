@@ -1,6 +1,5 @@
-VERSION: str = "4.1"
-DOCUMENT: str = """
-REQUIREMENTS:
+"""
+REQUIREMENT:
 
 Python 3.10+
 
@@ -14,7 +13,7 @@ Code         :Type             :Usage
 #            :                 :Set current memory cell value to 0 (normal) or move cursor to memory 0 (! modifier) or clear data (including variables) (!! modifier)
 <            :                 :Move cursor left by 1 (circular)
 >            :                 :Move cursor right by 1 (circular)
-,            :                 :Read a character input, store its ASCII code in current cell
+,            :                 :Read a character input, store its ASCII code in current cell <if got input> or store 0 <otherwise>
 .            :                 :Output cell as ASCII char (normal) or number (! modifier)
 $            :                 :Define/Call data (followed by [name][controller], normal) or call module (! modifier)
 @            :                 :Debug (~debug mark)
@@ -33,14 +32,18 @@ F            :VarController    :Define a function (used after $[name])
 S            :VarController    :Define a string variable (used after $[name])
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
+
 runbf        :Module           :Run a Brainfuck code stored in a function variable
-+-----  !$runbf[bf_code: variable<function>]
+| Syntax: `!$runbf[bf_code: variable<function>]`
+
 runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
-+-----  !$runwaste[waste_code: variable<function>][save_store_to: variable<any>]
+| Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable]`
+
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
-+-----  !$include[file_path: variable<string>]
+| Syntax: `!$include[file_path: variable<string>]`
+
 virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw code <typeof variable is function> or from a file <typeof variable is string> (isolated data)
-+-----  !$virtual[code_or_filepath: variable<string | function>]
+| Syntax: `!$virtual[code_or_filepath: variable<string | function>]`
 
 ------------------------------
 ADDITIONAL NOTES:
@@ -53,6 +56,7 @@ ADDITIONAL NOTES:
 
 """
 
+VERSION: str = "4.2"
 from typing import Literal
 from random import randint
 from time import sleep
@@ -98,7 +102,11 @@ class Trawpaw:
                         self.memories[self.cursor] = ord(getinput[inputcur]) % self.maxvaluepermem
                         inputcur += 1
                     except:
-                        self.memories[self.cursor] = ord(input("Input a character: ")[0]) % self.maxvaluepermem
+                        ginput = input("[input<char>] ")
+                        if ginput:
+                            self.memories[self.cursor] = ord(ginput[0]) % self.maxvaluepermem
+                        else:
+                            self.memories[self.cursor] = 0
                 case ".":
                     result += chr(self.memories[self.cursor])
                 case "[":
@@ -616,7 +624,7 @@ def main():
     trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
     
     if args.usage:
-        print(DOCUMENT)
+        print(__doc__)
         quit()
     elif args.file:
         with open(args.file, "r", encoding="utf-8") as f:

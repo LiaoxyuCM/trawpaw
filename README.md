@@ -5,7 +5,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 4.1
+Version: 4.2
 
 #### Use our cli
 
