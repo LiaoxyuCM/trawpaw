@@ -28,7 +28,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile main.py
+          pyinstaller --onefile trawpaw.py
 
       - name: Upload Executable
         uses: actions/upload-artifact@v3
