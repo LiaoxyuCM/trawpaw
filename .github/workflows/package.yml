@@ -7,7 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout code
@@ -25,10 +28,10 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile trawpaw.py
+          pyinstaller --onefile main.py
 
       - name: Upload Executable
         uses: actions/upload-artifact@v3
         with:
-          name: python-app
+          name: python-app-${{ matrix.os }}
           path: dist/
