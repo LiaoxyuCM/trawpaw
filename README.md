@@ -8,7 +8,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 4.5
+Version: 5.0-rc1
 
 #### Use our cli
 
@@ -49,10 +49,10 @@ Version: 1.1.1
 
 ```js
 import { Trawpaw } from "./trawpaw.js";
-document.addEventListener("DOMContentLoaded", async() => {
+document.addEventListener("DOMContentLoaded", () => {
   const trawpaw = new Trawpaw();
   // To execute trawpaw code, async-await is required.
-  let result = await trawpaw.execute("Your trawpaw source code", "Input when this project requires input (optional)", clearHistory=false /* or true */);
+  let result = trawpaw.execute("Your trawpaw source code", "Input when this project requires input (optional)", clearHistory=false /* or true */);
   if (result["status"] === 1) {
     console.error(result["message"]);
   } else {
@@ -63,8 +63,16 @@ document.addEventListener("DOMContentLoaded", async() => {
 
 ## Hello World in Trawpaw
 
+Before v4.5
+
 ```trawpaw
 !##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
+```
+
+v4.5 \(or later\)
+
+```trawpaw
+!!#$ai$as"Hello, world!"!$print$a
 ```
 
 ## Thanks

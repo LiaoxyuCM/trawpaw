@@ -48,6 +48,13 @@ virtual      :Module           :Create a virtual Trawpaw object to run a Trawpaw
 print        :Module           :Print a string variable
 | Syntax: `!$print[variable<string>]`
 
+string
+    length     :Module           :Get the length of a string variable, store it in current cell
+    | Syntax: `!$string.length[variable<string>]`
+
+    reverse    :Module           :Reverse a string variable
+    | Syntax: `!$string.reverse[variable<string>]`
+
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
@@ -59,7 +66,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "4.5"
+VERSION: str = "5.0-rc1"
 from random import randint
 from time import sleep
 import sys, enum
@@ -549,6 +556,28 @@ class Trawpaw:
                                     print(self.datalist[varname]["value"], end="")
                                     sys.stdout.flush()
                                 result += self.datalist[varname]["value"]
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    elif dofunction == "string.length":
+                        col += 1
+                        varname = code[col-startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                string_length = len(self.datalist[varname]["value"])
+                                self.memories[self.cursor] = string_length % self.maxvaluepermem
+                            else:
+                                return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                        else:
+                            return {"status": 1, "message": f"ERR: Data '{varname}' is not initialized at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                    elif dofunction == "string.reverse":
+                        col += 1
+                        varname = code[col-startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = self.datalist[varname]["value"][::-1]
+                                self.datalist[varname]["value"] = new_string
                             else:
                                 return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         else:
