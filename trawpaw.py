@@ -66,7 +66,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.0-rc1"
+VERSION: str = "5.0-rc2"
 from random import randint
 from time import sleep
 import sys, enum
@@ -101,7 +101,7 @@ class Trawpaw:
         self.cursor = 0
 
 
-    def runBrainfk(self, code: str, getinput: str = "", startAtCol: int = 0) -> dict:
+    def runBrainfk(self, code: str, getinput: str = "", startAtCol: int = 0, execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually) -> dict:
         inputcur: int = 0
         bracketlist: list[int] = []
         result: str = ""
@@ -127,6 +127,9 @@ class Trawpaw:
                         else:
                             self.memories[self.cursor] = 0
                 case ".":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print(chr(self.memories[self.cursor]), end="")
+                        sys.stdout.flush()
                     result += chr(self.memories[self.cursor])
                 case "[":
                     bracketlist.append(col)
@@ -140,7 +143,7 @@ class Trawpaw:
             return {"status": 1, "message": f"ERR: Bracket is not closed at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
         return {"status": 0, "result": result, "cursor": self.cursor, "datalistlength": len(self.datalist)}
     
-    def runWaste(self, code: str, saveto: str, startAtCol: int = 0):
+    def runWaste(self, code: str, saveto: str, startAtCol: int = 0, execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually) -> dict:
         """
         Waste esolang executor, ported from JS, using match-case.
         """
@@ -181,18 +184,27 @@ class Trawpaw:
                     if isinstance(ptr, int):
                         ptr //= 2
                 case '％' | '%':
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print(str(ptr), end="")
+                        sys.stdout.flush()
                     out += str(ptr)
                 case '＆' | '&':
                     input("Breakpoint reached. Press Enter to continue...")
                 case '．' | '.':
                     try:
+                        if execution_method == TrawpawExecutionMethod.printManually:
+                            print(chr(ptr), end="")
+                            sys.stdout.flush()
                         out += chr(ptr)
                     except Exception:
+                        if execution_method == TrawpawExecutionMethod.printManually:
+                            print("?", end="")
+                            sys.stdout.flush()
                         out += '?'
                 case '：' | ':':
                     out += '\n'
                 case '？' | '?':
-                    sleep(1)
+                    sleep(0.001)
                 case '！' | '!':
                     return {"status": 2, "result": out, "cursor": self.cursor, "datalistlength": len(self.datalist)}
                 case '［' | '[':
@@ -269,7 +281,7 @@ class Trawpaw:
             return {"status": 1, "message": f"ERR: Data '{saveto}' is not initialized.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
 
 
-    def execute(self, code: str, getinput: str = "", execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually, clearData: bool = False, startAtCol: int = 0) -> dict:
+    def execute(self, code: str, getinput: str = "", clearData: bool = False, startAtCol: int = 0, execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually) -> dict:
         inputcur: int = 0
         bracketlist: list[dict] = []
         result: str = ""
@@ -470,7 +482,7 @@ class Trawpaw:
                         name = code[col-startAtCol]
                         try:
                             if self.datalist[name]["type"] == "function":
-                                function_result = self.runBrainfk(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"])
+                                function_result = self.runBrainfk(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"], execution_method=execution_method)
                                 if function_result["status"] == 1:
                                     return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                 else:
@@ -490,7 +502,7 @@ class Trawpaw:
                             varname = code[col-startAtCol]
                             try:
                                 if self.datalist[name]["type"] == "function":
-                                    function_result = self.runWaste(self.datalist[name]["value"], varname, startAtCol=self.datalist[name]["startAtCol"])
+                                    function_result = self.runWaste(self.datalist[name]["value"], varname, startAtCol=self.datalist[name]["startAtCol"], execution_method=execution_method)
                                     if function_result["status"] == 1:
                                         return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                     else:
@@ -529,7 +541,7 @@ class Trawpaw:
                                     with open(self.datalist[varname]["value"], "r", encoding="utf-8") as f:
                                         include_code = f.read()
                                         f.close()
-                                    function_result = another_trawpaw_object.execute(include_code, startAtCol=0)
+                                    function_result = another_trawpaw_object.execute(include_code, startAtCol=0, execution_method=execution_method)
                                     if function_result["status"] == 1:
                                         return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]['value']}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                     # else:
@@ -538,7 +550,7 @@ class Trawpaw:
                                     return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                             elif self.datalist[varname]["type"] == "function":
                                 include_code = self.datalist[varname]["value"]
-                                function_result = another_trawpaw_object.execute(include_code, startAtCol=self.datalist[varname]["startAtCol"])
+                                function_result = another_trawpaw_object.execute(include_code, startAtCol=self.datalist[varname]["startAtCol"], execution_method=execution_method)
                                 if function_result["status"] == 1:
                                     return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                 else:
@@ -612,7 +624,7 @@ class Trawpaw:
                                     elif self.datalist[name]["type"] == "linkmemory":
                                         self.memories[self.cursor] = self.memories[self.datalist[name]["value"]]
                                     elif self.datalist[name]["type"] == "function":
-                                        function_result = self.execute(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"])
+                                        function_result = self.execute(self.datalist[name]["value"], startAtCol=self.datalist[name]["startAtCol"], execution_method=execution_method)
                                         if function_result["status"] == 1:
                                             return {"status": 1, "message": function_result["message"], "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                         else:
