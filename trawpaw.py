@@ -1,7 +1,7 @@
 """
 REQUIREMENT:
 
-Python 3.10+
+Python 3.12+
 
 ------------------------------
 Code         :Type             :Usage
@@ -59,7 +59,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "4.4_1"
+VERSION: str = "4.5"
 from random import randint
 from time import sleep
 import sys, enum
