@@ -26,6 +26,10 @@ After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address o
 
 #### Execute in-python-program
 
+You need to download the source code from the latest release from [our releases](https://github.com/LiaoxyuCM/trawpaw/releases) and unzip it. Then you can import the `trawpaw` module in your Python code and use the `Trawpaw` class to execute Trawpaw code.
+
+It requires Python Interpreter v3.12 or higher.
+
 ```py
 import trawpaw;
 executor = trawpaw.Trawpaw();
