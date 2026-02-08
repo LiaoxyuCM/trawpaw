@@ -510,11 +510,11 @@ class Trawpaw:
                                         f.close()
                                     function_result = self.execute(include_code, startAtCol=0)
                                     if function_result["status"] == 1:
-                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]["value"]}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]['value']}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                     else:
                                         result += function_result["result"]
                                 except FileNotFoundError:
-                                    return {"status": 1, "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                    return {"status": 1, "message": f"ERR: Included file {self.datalist[varname]['value']} not found at col {col}.", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                             else:
                                 return {"status": 1, "message": f"ERR: Variable must be a string at col {col}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                         else:
@@ -531,7 +531,7 @@ class Trawpaw:
                                         f.close()
                                     function_result = another_trawpaw_object.execute(include_code, startAtCol=0)
                                     if function_result["status"] == 1:
-                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]["value"]}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
+                                        return {"status": 1, "message": function_result["message"] + f" in file {self.datalist[varname]['value']}", "cursor": self.cursor, "datalistlength": len(self.datalist)}
                                     # else:
                                     #     result += function_result["result"]
                                 except FileNotFoundError:
