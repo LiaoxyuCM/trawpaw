@@ -8,7 +8,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 5.1_1
+Version: 5.1_2
 
 #### Use our cli
 

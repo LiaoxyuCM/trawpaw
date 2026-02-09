@@ -119,7 +119,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.1_1"
+VERSION: str = "5.1_2"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -1548,8 +1548,8 @@ def main():
     try:
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 
-        # F**k your ^[[D on linux, to fix this sh*t, I have to import readline, it will makes my program SLOWER + I didnt know will it work.
-        import readline  # type: ignore
+        # F**k your ^[[D on linux, to fix this sh*t, I have to spend a lot of times to fix it, it will makes my program SLOWER + I didnt know will it work.
+        from prompt_toolkit import prompt  # type: ignore
 
         parser = ArgumentParser(
             usage="trawpaw.py [options] <file>",
@@ -1605,7 +1605,7 @@ def main():
         else:
             print("Run `~ --usage` (~ means trawpaw src) for more information")
             print("Press Ctrl+C to exit.")
-            code = input("[c:0 v:0] ")
+            code = prompt("[c:0 v:0] ")
             while True:
                 trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
@@ -1613,7 +1613,7 @@ def main():
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
                 # else:
                 #     print(trawpaw_result.get("result", ""))
-                code = input(
+                code = prompt(
                     f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] "
                 )
     except KeyboardInterrupt:
