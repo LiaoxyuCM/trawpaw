@@ -82,6 +82,32 @@ string
     unescape   :Module           :HTML-unescape a string variable
     | Syntax: `!$string.unescape[original_str: variable<string>]`
 
+hash
+    md5        :Module           :MD5-hash a string variable
+    | Syntax: `!$hash.md5[original_str: variable<string>]`
+
+    sha1       :Module           :SHA1-hash a string variable
+    | Syntax: `!$hash.sha1[original_str: variable<string>]`
+
+    sha224     :Module           :SHA224-hash a string variable
+    | Syntax: `!$hash.sha224[original_str: variable<string>]`
+
+    sha256     :Module           :SHA256-hash a string variable
+    | Syntax: `!$hash.sha256[original_str: variable[string>]`
+
+    sha384     :Module           :SHA384-hash a string variable
+    | Syntax: `!$hash.sha384[original_str: variable[string>]`
+
+    sha512     :Module           :SHA512-hash a string variable
+    | Syntax: `!$hash.sha512[original_str: variable[string>]`
+
+base64
+    encode     :Module           :Base64-encode a string variable
+    | Syntax: `!$base64.encode[original_str: variable[string>]`
+
+    decode     :Module           :Base64-decode a string variable
+    | Syntax: `!$base64.decode[original_str: variable[string>]`
+
 ------------------------------
 ADDITIONAL NOTES:
 1. Bracket commands ([ ( {) must be properly closed with ] ) } respectively
@@ -93,13 +119,13 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.0"
+VERSION: str = "5.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
 from random import randint
 from time import sleep
-import sys, enum, urllib.parse
+import sys, enum, urllib.parse, hashlib, base64
 
 
 class TrawpawExecutionMethod(enum.Enum):
@@ -1143,6 +1169,190 @@ class Trawpaw:
                                 new_string = self.datalist[varname]["value"]
                                 for k, v in list(escape.items())[::-1]:
                                     new_string = new_string.replace(v, k)
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.md5":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.md5(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.sha1":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.sha1(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.sha224":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.sha224(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.sha256":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.sha256(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.sha384":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.sha384(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "hash.sha512":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = hashlib.sha512(
+                                    self.datalist[varname]["value"].encode()
+                                ).hexdigest()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "base64.encode":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = base64.b64encode(
+                                    self.datalist[varname]["value"].encode()
+                                ).decode()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a string at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                    elif dofunction == "base64.decode":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = base64.b64decode(
+                                    self.datalist[varname]["value"].encode()
+                                ).decode()
                                 self.datalist[varname]["value"] = new_string
                             else:
                                 return {
