@@ -119,7 +119,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.1"
+VERSION: str = "5.1_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -1545,56 +1545,64 @@ class Trawpaw:
 
 
 def main():
-    from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
-
-    parser = ArgumentParser(
-        usage="trawpaw.py [options] <file>",
-        description="Trawpaw Interpreter v" + VERSION,
-        formatter_class=RawTextHelpFormatter,
-    )
-    parser.add_argument(
-        "--usage", "-u", action="store_true", help="Show usage information and quit."
-    )
-    parser.add_argument("file", nargs="?", help="Path to the Trawpaw source code file.")
-    parser.add_argument(
-        "--memories",
-        "-m",
-        type=int,
-        default=128,
-        help="Number of memory cells to use (1 <= memories <= 65536) (default: 128).",
-    )
-    parser.add_argument(
-        "--maxvaluepermem",
-        "-v",
-        type=int,
-        default=127,
-        help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).",
-    )
-
-    args: Namespace = parser.parse_args()
-    trawpaw: Trawpaw
     try:
-        trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
-    except AssertionError as e:
-        print(f"ERR: {e}")
-        sys.exit(1)
+        from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 
-    if args.usage:
-        print(__doc__)
-        sys.exit(0)
-    elif args.file:
-        with open(args.file, "r", encoding="utf-8") as f:
-            code: str = f.read()
-            trawpaw_result = trawpaw.execute(code)
-            print(end="\n")
-            if trawpaw_result["status"] == 1:
-                print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
-            # else:
-            #     print(trawpaw_result.get("result", ""))
-            f.close()
-        sys.exit(0)
-    else:
+        # F**k your ^[[D on linux, to fix this sh*t, I have to import readline, it will makes my program SLOWER + I didnt know will it work.
+        import readline  # type: ignore
+
+        parser = ArgumentParser(
+            usage="trawpaw.py [options] <file>",
+            description="Trawpaw Interpreter v" + VERSION,
+            formatter_class=RawTextHelpFormatter,
+        )
+        parser.add_argument(
+            "--usage",
+            "-u",
+            action="store_true",
+            help="Show usage information and quit.",
+        )
+        parser.add_argument(
+            "file", nargs="?", help="Path to the Trawpaw source code file."
+        )
+        parser.add_argument(
+            "--memories",
+            "-m",
+            type=int,
+            default=128,
+            help="Number of memory cells to use (1 <= memories <= 65536) (default: 128).",
+        )
+        parser.add_argument(
+            "--maxvaluepermem",
+            "-v",
+            type=int,
+            default=127,
+            help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).",
+        )
+
+        args: Namespace = parser.parse_args()
+        trawpaw: Trawpaw
         try:
+            trawpaw = Trawpaw(args.memories, args.maxvaluepermem)
+        except AssertionError as e:
+            print(f"ERR: {e}")
+            sys.exit(1)
+
+        if args.usage:
+            print(__doc__)
+            sys.exit(0)
+        elif args.file:
+            with open(args.file, "r", encoding="utf-8") as f:
+                code: str = f.read()
+                trawpaw_result = trawpaw.execute(code)
+                print(end="\n")
+                if trawpaw_result["status"] == 1:
+                    print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
+                # else:
+                #     print(trawpaw_result.get("result", ""))
+                f.close()
+            sys.exit(0)
+        else:
             print("Run `~ --usage` (~ means trawpaw src) for more information")
             print("Press Ctrl+C to exit.")
             code = input("[c:0 v:0] ")
@@ -1608,9 +1616,8 @@ def main():
                 code = input(
                     f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] "
                 )
-        except KeyboardInterrupt:
-            print("\nExiting Trawpaw REPL.")
-            sys.exit(0)
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
