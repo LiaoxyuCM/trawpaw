@@ -8,7 +8,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 5.0-rc2
+Version: 5.0
 
 #### Use our cli
 
