@@ -23,8 +23,8 @@ _            :                 :Pause execution for 1s (normal) or 0.1s (! modif
 [pattern]    :Bracket          :Loop twice (normal) 50% chance skip all inside (! modifier)
 (pattern)    :Bracket          :Normal: skip if cell=0; !: skip if cell≠0
 {pattern}    :Bracket          :Comment
-I            :VarController    :Init/reset variable (used after $[name])
-W            :VarController    :Write current cell value to variable (used after $[name])
+I            :VarController    :Init/reset variable and set it's type to number (used after $[name])
+W            :VarController    :Set it's type to number and write current cell value to variable (used after $[name])
 R            :VarController    :Read variable value to current cell (used after $[name])
 L            :VarController    :Link variable to current cursor position (used after $[name])
 D            :VarController    :Delete variable (used after $[name])
@@ -37,7 +37,7 @@ runbf        :Module           :Run a Brainfuck code stored in a function variab
 | Syntax: `!$runbf[bf_code: variable<function>]`
 
 runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
-| Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable]`
+| Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
 
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
 | Syntax: `!$include[file_path: variable<string>]`
@@ -93,20 +93,20 @@ hash
     | Syntax: `!$hash.sha224[original_str: variable<string>]`
 
     sha256     :Module           :SHA256-hash a string variable
-    | Syntax: `!$hash.sha256[original_str: variable[string>]`
+    | Syntax: `!$hash.sha256[original_str: variable<string>]`
 
     sha384     :Module           :SHA384-hash a string variable
-    | Syntax: `!$hash.sha384[original_str: variable[string>]`
+    | Syntax: `!$hash.sha384[original_str: variable<string>]`
 
     sha512     :Module           :SHA512-hash a string variable
-    | Syntax: `!$hash.sha512[original_str: variable[string>]`
+    | Syntax: `!$hash.sha512[original_str: variable<string>]`
 
 base64
     encode     :Module           :Base64-encode a string variable
-    | Syntax: `!$base64.encode[original_str: variable[string>]`
+    | Syntax: `!$base64.encode[original_str: variable<string>]`
 
     decode     :Module           :Base64-decode a string variable
-    | Syntax: `!$base64.decode[original_str: variable[string>]`
+    | Syntax: `!$base64.decode[original_str: variable<string>]`
 
 ------------------------------
 ADDITIONAL NOTES:
@@ -119,7 +119,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.2_1"
+VERSION: str = "5.2_2"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -240,7 +240,15 @@ class Trawpaw:
         saved: int = 0
         ptr: int = self.memories[self.cursor]
         try:
-            saved = self.datalist.get(saveto, 0)
+            if self.datalist[saveto]["type"] == "number":
+                saved = self.datalist[saveto]["value"]
+            else:
+                return {
+                    "status": 1,
+                    "message": f"ERR: Data '{saveto}' is not a number.",
+                    "cursor": self.cursor,
+                    "datalistlength": len(self.datalist),
+                }
         except:
             return {
                 "status": 1,
