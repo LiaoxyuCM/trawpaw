@@ -280,21 +280,13 @@ class Trawpaw:
                 case "＃" | "#":
                     ptr = 0
                 case "+":
-                    self.memories[self.cursor] = (
-                        self.memories[self.cursor] + 1
-                    ) % self.maxvaluepermem
+                    ptr = (ptr + 1) % self.maxvaluepermem
                 case "-":
-                    self.memories[self.cursor] = (
-                        self.memories[self.cursor] - 1
-                    ) % self.maxvaluepermem
+                    ptr = (ptr - 1) % self.maxvaluepermem
                 case "*":
-                    self.memories[self.cursor] = (
-                        self.memories[self.cursor] * 2
-                    ) % self.maxvaluepermem
+                    ptr = (ptr * 2) % self.maxvaluepermem
                 case "/":
-                    self.memories[self.cursor] = (
-                        self.memories[self.cursor] // 2
-                    ) % self.maxvaluepermem
+                    ptr = (ptr // 2) % self.maxvaluepermem
                 case "％" | "%":
                     if execution_method == TrawpawExecutionMethod.printManually:
                         print(str(ptr), end="")
