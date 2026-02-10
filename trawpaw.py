@@ -1836,6 +1836,7 @@ def main():
             description="Trawpaw Interpreter v" + VERSION,
             formatter_class=RawTextHelpFormatter,
         )
+        running_method = parser.add_mutually_exclusive_group(required=False)
         parser.add_argument(
             "--usage",
             "-u",
@@ -1859,7 +1860,12 @@ def main():
             default=127,
             help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).",
         )
-        parser.add_argument("--waste", action="store_true", help="Run waste code")
+        running_method.add_argument(
+            "--waste_preview", action="store_true", help="Run waste (preview) code"
+        )
+        running_method.add_argument(
+            "--waste", action="store_true", help="Run waste code"
+        )
 
         args: Namespace = parser.parse_args()
         trawpaw: Trawpaw
@@ -1875,9 +1881,12 @@ def main():
         elif args.file:
             with open(args.file, "r", encoding="utf-8") as f:
                 code: str = f.read()
-                if args.waste:
+                if args.waste_preview:
                     trawpaw.datalist["a"] = {"type": "number", "value": 0}
                     trawpaw_result = trawpaw.runWastePreview(code, "a")
+                elif args.waste:
+                    trawpaw.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw.runWaste(code, "a")
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
@@ -1890,14 +1899,16 @@ def main():
         else:
             print("Run `~ --usage` (~ means trawpaw src) for more information")
             print("Press Ctrl+C to exit.")
-            if args.waste:
+            if args.waste or args.waste_preview:
                 trawpaw.datalist["a"] = {"type": "number", "value": 0}
                 code = prompt("[waste] ")
             else:
                 code = prompt("[c:0 v:0] ")
             while True:
-                if args.waste:
+                if args.waste_preview:
                     trawpaw_result = trawpaw.runWastePreview(code, "a")
+                elif args.waste:
+                    trawpaw_result = trawpaw.runWaste(code, "a")
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
