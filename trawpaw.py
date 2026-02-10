@@ -119,7 +119,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.2"
+VERSION: str = "5.2_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -271,18 +271,22 @@ class Trawpaw:
                     break
                 case "＃" | "#":
                     ptr = 0
-                case "＋" | "+":
-                    if isinstance(ptr, int):
-                        ptr += 1
-                case "－" | "-":
-                    if isinstance(ptr, int):
-                        ptr -= 1
-                case "＊" | "*":
-                    if isinstance(ptr, int):
-                        ptr *= 2
-                case "／" | "/":
-                    if isinstance(ptr, int):
-                        ptr //= 2
+                case "+":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] + 1
+                    ) % self.maxvaluepermem
+                case "-":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] - 1
+                    ) % self.maxvaluepermem
+                case "*":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] * 2
+                    ) % self.maxvaluepermem
+                case "/":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] // 2
+                    ) % self.maxvaluepermem
                 case "％" | "%":
                     if execution_method == TrawpawExecutionMethod.printManually:
                         print(str(ptr), end="")
