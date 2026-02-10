@@ -119,13 +119,13 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.1_2"
+VERSION: str = "5.2"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
 from random import randint
 from time import sleep
-import sys, enum, urllib.parse, hashlib, base64
+import sys, os, enum, urllib.parse, hashlib, base64
 
 
 class TrawpawExecutionMethod(enum.Enum):
@@ -260,8 +260,13 @@ class Trawpaw:
                 case "＾" | "^":
                     ptr = 0 if randint(0, 1) == 0 else 1
                 case "＠" | "@":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        os.system("cls" if os.name == "nt" else "clear")
                     out = ""
                 case "，" | ",":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print(code[col - startAtCol + 1 :], end="")
+                        sys.stdout.flush()
                     out += code[col - startAtCol + 1 :]
                     break
                 case "＃" | "#":
@@ -297,6 +302,9 @@ class Trawpaw:
                             sys.stdout.flush()
                         out += "?"
                 case "：" | ":":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print("\n", end="")
+                        sys.stdout.flush()
                     out += "\n"
                 case "？" | "?":
                     sleep(0.001)
@@ -1579,6 +1587,7 @@ def main():
             default=127,
             help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).",
         )
+        parser.add_argument("--waste", action="store_true", help="Run waste code")
 
         args: Namespace = parser.parse_args()
         trawpaw: Trawpaw
@@ -1594,7 +1603,11 @@ def main():
         elif args.file:
             with open(args.file, "r", encoding="utf-8") as f:
                 code: str = f.read()
-                trawpaw_result = trawpaw.execute(code)
+                if args.waste:
+                    trawpaw.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw.runWaste(code, "a")
+                else:
+                    trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
@@ -1605,17 +1618,27 @@ def main():
         else:
             print("Run `~ --usage` (~ means trawpaw src) for more information")
             print("Press Ctrl+C to exit.")
-            code = prompt("[c:0 v:0] ")
+            if args.waste:
+                trawpaw.datalist["a"] = {"type": "number", "value": 0}
+                code = prompt("[waste] ")
+            else:
+                code = prompt("[c:0 v:0] ")
             while True:
-                trawpaw_result = trawpaw.execute(code)
+                if args.waste:
+                    trawpaw_result = trawpaw.runWaste(code, "a")
+                else:
+                    trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
                 if trawpaw_result["status"] == 1:
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
                 # else:
                 #     print(trawpaw_result.get("result", ""))
-                code = prompt(
-                    f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] "
-                )
+                if args.waste:
+                    code = prompt("[waste] ")
+                else:
+                    code = prompt(
+                        f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] "
+                    )
     except KeyboardInterrupt:
         sys.exit(0)
 
