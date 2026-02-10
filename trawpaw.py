@@ -36,8 +36,12 @@ C            :DebugMark        :Show current address of cursor
 runbf        :Module           :Run a Brainfuck code stored in a function variable
 | Syntax: `!$runbf[bf_code: variable<function>]`
 
-runwaste     :Module           :Run a Waste code stored in a function variable, save result to a variable
-| Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
+runwaste
+    @          :Module           :Set the cursor address to 0, run a Waste code (preview) stored in a function variable, another arg is the save of waste
+    | Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
+
+    preview    :Module           :Run a Waste code (preview) stored in a function variable, another arg is the save of waste
+    | Syntax: `!$runwaste.preview[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
 
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
 | Syntax: `!$include[file_path: variable<string>]`
@@ -119,7 +123,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.2_2"
+VERSION: str = "5.3"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -228,6 +232,225 @@ class Trawpaw:
         }
 
     def runWaste(
+        self,
+        code: str,
+        saveto: str,
+        startAtCol: int = 0,
+        execution_method: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
+    ) -> dict:
+        if len(self.memories) < 10:
+            return {
+                "status": 1,
+                "message": "ERR: To run waste (professional) code, at least 10 memories is required, please change your settings",
+                "cursor": self.cursor,
+                "datalistlength": len(self.datalist),
+            }
+        saved: int = 0
+        self.cursor = 0
+        try:
+            if self.datalist[saveto]["type"] == "number":
+                saved = self.datalist[saveto]["value"]
+            else:
+                return {
+                    "status": 1,
+                    "message": f"ERR: Data '{saveto}' is not a number.",
+                    "cursor": self.cursor,
+                    "datalistlength": len(self.datalist),
+                }
+        except:
+            return {
+                "status": 1,
+                "message": f"ERR: Data '{saveto}' is not initialized.",
+                "cursor": self.cursor,
+                "datalistlength": len(self.datalist),
+            }
+        out: str = ""
+        bracketStack = []
+        col: int = startAtCol
+        while col - startAtCol < len(code):
+            match code[col - startAtCol]:
+                case "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9":
+                    self.cursor = int(code[col - startAtCol])
+                case "＜" | "<":
+                    saved = self.memories[self.cursor]
+                case "＞" | ">":
+                    self.memories[self.cursor] = saved
+                case "＠" | "@":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        os.system("cls" if os.name == "nt" else "clear")
+                    out = ""
+                case "，" | ",":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print(code[col - startAtCol + 1 :], end="")
+                        sys.stdout.flush()
+                    out += code[col - startAtCol + 1 :]
+                    break
+                case "＃" | "#":
+                    self.memories[self.cursor] = 0
+                case "+":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] + 1
+                    ) % self.maxvaluepermem
+                case "-":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] - 1
+                    ) % self.maxvaluepermem
+                case "*":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] * 2
+                    ) % self.maxvaluepermem
+                case "/":
+                    self.memories[self.cursor] = (
+                        self.memories[self.cursor] // 2
+                    ) % self.maxvaluepermem
+                case "％" | "%":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print(str(self.memories[self.cursor]), end="")
+                        sys.stdout.flush()
+                    out += str(self.memories[self.cursor])
+                case "＆" | "&":
+                    input("Breakpoint reached. Press Enter to continue...")
+                case "．" | ".":
+                    try:
+                        if execution_method == TrawpawExecutionMethod.printManually:
+                            print(chr(self.memories[self.cursor]), end="")
+                            sys.stdout.flush()
+                        out += chr(self.memories[self.cursor])
+                    except Exception:
+                        if execution_method == TrawpawExecutionMethod.printManually:
+                            print("?", end="")
+                            sys.stdout.flush()
+                        out += "?"
+                case "：" | ":":
+                    if execution_method == TrawpawExecutionMethod.printManually:
+                        print("\n", end="")
+                        sys.stdout.flush()
+                    out += "\n"
+                case "！" | "!":
+                    return {
+                        "status": 2,
+                        "result": out,
+                        "cursor": self.cursor,
+                        "datalistlength": len(self.datalist),
+                    }
+                case "［" | "[":
+                    bracketStack.append({"type": "]", "position": col, "currranges": 0})
+                case "］" | "]":
+                    if not bracketStack or bracketStack[-1]["type"] != "]":
+                        return {
+                            "status": 1,
+                            "message": f"Unmatched closing bracket at position {col}",
+                            "cursor": self.cursor,
+                            "datalistlength": len(self.datalist),
+                        }
+                    else:
+                        if bracketStack[-1]["currranges"] > 0:
+                            bracketStack.pop()
+                        else:
+                            bracketStack[-1]["currranges"] += 1
+                            col = bracketStack[-1]["position"]
+                case "（" | "(":
+                    bracketStack.append({"type": ")", "position": col})
+                    # 50% chance skip all inside
+                    if randint(0, 1) == 0:
+                        innerBrackets = [{"type": "(", "position": col}]
+                        while innerBrackets:
+                            col += 1
+                            if col - startAtCol >= len(code):
+                                return {
+                                    "status": 1,
+                                    "message": "Unclosed bracket",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                            c = code[col - startAtCol]
+                            match c:
+                                case "（" | "(":
+                                    innerBrackets.append({"type": "(", "position": col})
+                                case "｛" | "{":
+                                    innerBrackets.append({"type": "}", "position": col})
+                                case "［" | "[":
+                                    innerBrackets.append({"type": "]", "position": col})
+                                case "）" | ")" | "］" | "]" | "｝" | "}":
+                                    lb = innerBrackets.pop()
+                                    if not innerBrackets:
+                                        if lb["type"] != ")":
+                                            return {
+                                                "status": 1,
+                                                "message": f"Mismatched brackets at position {col}",
+                                                "cursor": self.cursor,
+                                                "datalistlength": len(self.datalist),
+                                            }
+                case "）" | ")":
+                    if not bracketStack or bracketStack[-1]["type"] != ")":
+                        return {
+                            "status": 1,
+                            "message": f"Unmatched closing bracket at position {col}",
+                            "cursor": self.cursor,
+                            "datalistlength": len(self.datalist),
+                        }
+                    else:
+                        bracketStack.pop()
+                case "｛" | "{":
+                    innerBrackets = [{"type": "{", "position": col}]
+                    while innerBrackets:
+                        col += 1
+                        if col - startAtCol >= len(code):
+                            return {
+                                "status": 1,
+                                "message": f"Unclosed bracket at position {col}",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                        c = code[col - startAtCol]
+                        match c:
+                            case "（" | "(":
+                                innerBrackets.append({"type": "(", "position": col})
+                            case "｛" | "{":
+                                innerBrackets.append({"type": "}", "position": col})
+                            case "［" | "[":
+                                innerBrackets.append({"type": "]", "position": col})
+                            case "）" | ")" | "］" | "]" | "｝" | "}":
+                                lb = innerBrackets.pop()
+                                if not innerBrackets:
+                                    if lb["type"] != "}":
+                                        return {
+                                            "status": 1,
+                                            "message": f"Mismatched brackets at position {col}",
+                                            "cursor": self.cursor,
+                                            "datalistlength": len(self.datalist),
+                                        }
+                case "｝" | "}":
+                    if not bracketStack or bracketStack[-1]["type"] != "}":
+                        return {
+                            "status": 1,
+                            "message": f"Unmatched closing bracket at position {col}",
+                            "cursor": self.cursor,
+                            "datalistlength": len(self.datalist),
+                        }
+                    else:
+                        bracketStack.pop()
+            col += 1
+
+        # Save result to datalist
+        try:
+            self.datalist[saveto]["type"] = "number"
+            self.datalist[saveto]["value"] = saved
+            return {
+                "status": 0,
+                "result": out,
+                "cursor": self.cursor,
+                "datalistlength": len(self.datalist),
+            }
+        except:
+            return {
+                "status": 1,
+                "message": f"ERR: Data '{saveto}' is not initialized.",
+                "cursor": self.cursor,
+                "datalistlength": len(self.datalist),
+            }
+
+    def runWastePreview(
         self,
         code: str,
         saveto: str,
@@ -742,9 +965,54 @@ class Trawpaw:
                         else:
                             col += 1
                             varname = code[col - startAtCol]
+                            # try:
+                            if self.datalist[name]["type"] == "function":
+                                function_result = self.runWaste(
+                                    self.datalist[name]["value"],
+                                    varname,
+                                    startAtCol=self.datalist[name]["startAtCol"],
+                                    execution_method=execution_method,
+                                )
+                                if function_result["status"] == 1:
+                                    return {
+                                        "status": 1,
+                                        "message": function_result["message"],
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                else:
+                                    result += function_result["result"]
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: Variable must be a function at col {col}",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                            # except:
+                            #     return {
+                            #         "status": 1,
+                            #         "message": f"ERR: (One of) arguments is not initialized at col {col}.",
+                            #         "cursor": self.cursor,
+                            #         "datalistlength": len(self.datalist),
+                            #     }
+                    elif dofunction == "runwaste.preview":
+                        col += 1
+                        name = code[col - startAtCol]
+                        col += 1
+                        if code[col - startAtCol] != "$":
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Invalid waste module call syntax at col {col}",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                        else:
+                            col += 1
+                            varname = code[col - startAtCol]
                             try:
                                 if self.datalist[name]["type"] == "function":
-                                    function_result = self.runWaste(
+                                    function_result = self.runWastePreview(
                                         self.datalist[name]["value"],
                                         varname,
                                         startAtCol=self.datalist[name]["startAtCol"],
@@ -1609,7 +1877,7 @@ def main():
                 code: str = f.read()
                 if args.waste:
                     trawpaw.datalist["a"] = {"type": "number", "value": 0}
-                    trawpaw_result = trawpaw.runWaste(code, "a")
+                    trawpaw_result = trawpaw.runWastePreview(code, "a")
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
@@ -1629,7 +1897,7 @@ def main():
                 code = prompt("[c:0 v:0] ")
             while True:
                 if args.waste:
-                    trawpaw_result = trawpaw.runWaste(code, "a")
+                    trawpaw_result = trawpaw.runWastePreview(code, "a")
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
