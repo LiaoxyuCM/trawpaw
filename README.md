@@ -104,7 +104,7 @@ v4.5 \(or later\)
   
   A: I’ve made the difficult decision to discontinue official support for JavaScript
   to allow me to focus our development and maintenance resources on our core supported
-  languages \(python\). This ensures we can deliver higher-quality features, faster
+  language \(python\). This ensures we can deliver higher-quality features, faster
   bug fixes, and more robust performance for the vast majority of our users who
   rely on these primary languages. We understand this may inconvenience some users,
   and we appreciate your understanding as we prioritize the long-term stability
