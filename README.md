@@ -93,12 +93,14 @@ v4.5 \(or later\)
 
 ## Help
 
-- Q: One of release assets said it is ubuntu-latest, are you sure you support Linux?
+- Q: One of release assets said it is ubuntu-latest, are you sure this support Linux?
+  
   A: Absolutely. The `ubuntu-latest` means the packagements is using the latest
   version of Ubuntu, which is a Linux  distribution. So you can use the Linux version
   of Trawpaw on your Linux system without any problem.
 
 - Q: Why don't you provide support for JavaScript anymore?
+  
   A: I’ve made the difficult decision to discontinue official support for JavaScript
   to allow me to focus our development and maintenance resources on our core supported
   languages \(python\). This ensures we can deliver higher-quality features, faster
@@ -118,7 +120,7 @@ v4.5 \(or later\)
 ### Prerelease & Release Candidate
 
 ```versionrule
-<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]]-(pre|rc)<id>
+<major>.0-(pre|rc)<minor>
 ```
 
 ## Thanks
