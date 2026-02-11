@@ -1,7 +1,7 @@
 """
 REQUIREMENT:
 
-Python 3.12+
+Python 3.10+
 
 ------------------------------
 Code         :Type             :Usage
