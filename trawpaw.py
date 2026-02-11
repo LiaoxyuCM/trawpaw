@@ -123,7 +123,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.3_1"
+VERSION: str = "5.4"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -1860,11 +1860,21 @@ def main():
             default=127,
             help="Maximum value per memory cell (0 <= maxvaluepermem <= 65535) (default: 127).",
         )
+        parser.add_argument(
+            "--version",
+            "-V",
+            action="version",
+            version=VERSION,
+            help="Show version information and quit.",
+        )
         running_method.add_argument(
             "--waste_preview", action="store_true", help="Run waste (preview) code"
         )
         running_method.add_argument(
             "--waste", action="store_true", help="Run waste code"
+        )
+        running_method.add_argument(
+            "--brainfuck", "-bf", action="store_true", help="Run Brainfuck code"
         )
 
         args: Namespace = parser.parse_args()
@@ -1887,6 +1897,8 @@ def main():
                 elif args.waste:
                     trawpaw.datalist["a"] = {"type": "number", "value": 0}
                     trawpaw_result = trawpaw.runWaste(code, "a")
+                elif args.brainfuck:
+                    trawpaw_result = trawpaw.runBrainfk(code)
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
@@ -1902,6 +1914,8 @@ def main():
             if args.waste or args.waste_preview:
                 trawpaw.datalist["a"] = {"type": "number", "value": 0}
                 code = prompt("[waste] ")
+            elif args.brainfuck:
+                code = prompt("[bf c:0] ")
             else:
                 code = prompt("[c:0 v:0] ")
             while True:
@@ -1909,6 +1923,8 @@ def main():
                     trawpaw_result = trawpaw.runWastePreview(code, "a")
                 elif args.waste:
                     trawpaw_result = trawpaw.runWaste(code, "a")
+                elif args.brainfuck:
+                    trawpaw_result = trawpaw.runBrainfk(code)
                 else:
                     trawpaw_result = trawpaw.execute(code)
                 print(end="\n")
@@ -1916,8 +1932,10 @@ def main():
                     print(trawpaw_result.get("message", "ERR: Unknown error occurred."))
                 # else:
                 #     print(trawpaw_result.get("result", ""))
-                if args.waste:
+                if args.waste_preview or args.waste:
                     code = prompt("[waste] ")
+                if args.brainfuck:
+                    code = prompt(f"[bf c:{trawpaw_result['cursor']}] ")
                 else:
                     code = prompt(
                         f"[c:{trawpaw_result['cursor']} v:{trawpaw_result['datalistlength']}] "

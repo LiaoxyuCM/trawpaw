@@ -8,7 +8,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 5.3_1
+Version: 5.4
 
 #### Use our cli
 
@@ -23,6 +23,7 @@ and unzip it. Then you can use the following commands in your terminal:
 trawpaw # To open Trawpaw REPL
 trawpaw --help # For more information
 trawpaw --usage # To show trawpaw usage
+trawpaw --version # To show trawpaw version
 trawpaw filepath # To execute this file
 ```
 
@@ -93,7 +94,7 @@ v4.5 \(or later\)
 
 ## Help
 
-- Q: One of release assets said it is ubuntu-latest, are you sure this support Linux?
+- Q: One of release assets said it's ubuntu-latest, are you sure this supports Linux?
   
   A: Absolutely. The `ubuntu-latest` means the packagements is using the latest
   version of Ubuntu, which is a Linux  distribution. So you can use the Linux version
