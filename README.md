@@ -21,6 +21,7 @@ and unzip it. Then you can use the following commands in your terminal:
 ```sh
 ##### WINDOWS, MACOS OR LINUX #####
 trawpaw # To open Trawpaw REPL
+trawpaw --help # For more information
 trawpaw --usage # To show trawpaw usage
 trawpaw filepath # To execute this file
 ```
@@ -35,7 +36,7 @@ You need to download the source code from the latest release from
 and unzip it. Then you can import the `trawpaw` module in your Python code
 and use the `Trawpaw` class to execute Trawpaw code.
 
-It requires Python Interpreter v3.12 or higher.
+It requires Python Interpreter v3.10 or higher.
 
 ```py
 import trawpaw;
@@ -90,7 +91,37 @@ v4.5 \(or later\)
 !!#$ai$as"Hello, world!"!$print$a
 ```
 
+## Help
+
+- Q: One of release assets said it is ubuntu-latest, are you sure you support Linux?
+  A: Absolutely. The `ubuntu-latest` means the packagements is using the latest
+  version of Ubuntu, which is a Linux  distribution. So you can use the Linux version
+  of Trawpaw on your Linux system without any problem.
+
+- Q: Why don't you provide support for JavaScript anymore?
+  A: I’ve made the difficult decision to discontinue official support for JavaScript
+  to allow me to focus our development and maintenance resources on our core supported
+  languages \(python\). This ensures we can deliver higher-quality features, faster
+  bug fixes, and more robust performance for the vast majority of our users who
+  rely on these primary languages. We understand this may inconvenience some users,
+  and we appreciate your understanding as we prioritize the long-term stability
+  and improvement of Trawpaw.
+
+## Version rule
+
+### Standard
+
+```versionrule
+<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]
+```
+
+### Prerelease & Release Candidate
+
+```versionrule
+<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]]-(pre|rc)<id>
+```
+
 ## Thanks
 
-- [Waste](https://github.com/ChenQingMua/WasteLanguage-Preview)
+- [Waste-Preview](https://github.com/ChenQingMua/WasteLanguage-Preview)
 - Brainf\*\*k
