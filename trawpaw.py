@@ -123,7 +123,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.3"
+VERSION: str = "5.3_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -196,7 +196,7 @@ class Trawpaw:
                             ord(getinput[inputcur]) % self.maxvaluepermem
                         )
                         inputcur += 1
-                    except:
+                    except IndexError:
                         ginput = input("[input<char>] ")
                         if ginput:
                             self.memories[self.cursor] = (
@@ -257,7 +257,7 @@ class Trawpaw:
                     "cursor": self.cursor,
                     "datalistlength": len(self.datalist),
                 }
-        except:
+        except KeyError:
             return {
                 "status": 1,
                 "message": f"ERR: Data '{saveto}' is not initialized.",
@@ -432,7 +432,7 @@ class Trawpaw:
                         bracketStack.pop()
             col += 1
 
-        # Save result to datalist
+        # Save the save to datalist
         try:
             self.datalist[saveto]["type"] = "number"
             self.datalist[saveto]["value"] = saved
@@ -442,7 +442,7 @@ class Trawpaw:
                 "cursor": self.cursor,
                 "datalistlength": len(self.datalist),
             }
-        except:
+        except KeyError:
             return {
                 "status": 1,
                 "message": f"ERR: Data '{saveto}' is not initialized.",
@@ -472,7 +472,7 @@ class Trawpaw:
                     "cursor": self.cursor,
                     "datalistlength": len(self.datalist),
                 }
-        except:
+        except KeyError:
             return {
                 "status": 1,
                 "message": f"ERR: Data '{saveto}' is not initialized.",
@@ -652,7 +652,7 @@ class Trawpaw:
                 "cursor": self.cursor,
                 "datalistlength": len(self.datalist),
             }
-        except:
+        except KeyError:
             return {
                 "status": 1,
                 "message": f"ERR: Data '{saveto}' is not initialized.",
@@ -717,7 +717,7 @@ class Trawpaw:
                                 ord(getinput[inputcur]) % self.maxvaluepermem
                             )
                             inputcur += 1
-                        except:
+                        except IndexError:
                             original_input = input("[input<char>] ")
                             if original_input:
                                 self.memories[self.cursor] = (
@@ -730,7 +730,7 @@ class Trawpaw:
                         if special:
                             if execution_method == TrawpawExecutionMethod.printManually:
                                 print(str(self.memories[self.cursor]), end="")
-                                sys.stdout.flush()  # F**k your IO buffer
+                                sys.stdout.flush()  # How can I describe your IO buffer
                             result += str(self.memories[self.cursor])
                         else:
                             if execution_method == TrawpawExecutionMethod.printManually:
@@ -944,7 +944,7 @@ class Trawpaw:
                                     "cursor": self.cursor,
                                     "datalistlength": len(self.datalist),
                                 }
-                        except:
+                        except KeyError:
                             return {
                                 "status": 1,
                                 "message": f"ERR: Data '{name}' is not initialized at col {col}.",
@@ -965,37 +965,37 @@ class Trawpaw:
                         else:
                             col += 1
                             varname = code[col - startAtCol]
-                            # try:
-                            if self.datalist[name]["type"] == "function":
-                                function_result = self.runWaste(
-                                    self.datalist[name]["value"],
-                                    varname,
-                                    startAtCol=self.datalist[name]["startAtCol"],
-                                    execution_method=execution_method,
-                                )
-                                if function_result["status"] == 1:
+                            try:
+                                if self.datalist[name]["type"] == "function":
+                                    function_result = self.runWaste(
+                                        self.datalist[name]["value"],
+                                        varname,
+                                        startAtCol=self.datalist[name]["startAtCol"],
+                                        execution_method=execution_method,
+                                    )
+                                    if function_result["status"] == 1:
+                                        return {
+                                            "status": 1,
+                                            "message": function_result["message"],
+                                            "cursor": self.cursor,
+                                            "datalistlength": len(self.datalist),
+                                        }
+                                    else:
+                                        result += function_result["result"]
+                                else:
                                     return {
                                         "status": 1,
-                                        "message": function_result["message"],
+                                        "message": f"ERR: Variable must be a function at col {col}",
                                         "cursor": self.cursor,
                                         "datalistlength": len(self.datalist),
                                     }
-                                else:
-                                    result += function_result["result"]
-                            else:
+                            except KeyError:
                                 return {
                                     "status": 1,
-                                    "message": f"ERR: Variable must be a function at col {col}",
+                                    "message": f"ERR: (One of) arguments is not initialized at col {col}.",
                                     "cursor": self.cursor,
                                     "datalistlength": len(self.datalist),
                                 }
-                            # except:
-                            #     return {
-                            #         "status": 1,
-                            #         "message": f"ERR: (One of) arguments is not initialized at col {col}.",
-                            #         "cursor": self.cursor,
-                            #         "datalistlength": len(self.datalist),
-                            #     }
                     elif dofunction == "runwaste.preview":
                         col += 1
                         name = code[col - startAtCol]
@@ -1034,7 +1034,7 @@ class Trawpaw:
                                         "cursor": self.cursor,
                                         "datalistlength": len(self.datalist),
                                     }
-                            except:
+                            except KeyError:
                                 return {
                                     "status": 1,
                                     "message": f"ERR: (One of) arguments is not initialized at col {col}.",
@@ -1208,7 +1208,7 @@ class Trawpaw:
                                 inp_result = input(self.datalist[hint]["value"])
                                 self.datalist[storeto]["type"] = "string"
                                 self.datalist[storeto]["value"] = inp_result
-                            except:
+                            except KeyError:
                                 return {
                                     "status": 1,
                                     "message": f"ERR: (One of) arguments is not initialized at col {col}.",
@@ -1678,7 +1678,7 @@ class Trawpaw:
                                     self.datalist[name]["value"] = self.memories[
                                         self.cursor
                                     ]
-                                except:
+                                except KeyError:
                                     return {
                                         "status": 1,
                                         "message": f"ERR: Data '{name}' is not initialized at col {col}.",
@@ -1712,7 +1712,7 @@ class Trawpaw:
                                             }
                                         else:
                                             result += function_result["result"]
-                                except:
+                                except KeyError:
                                     return {
                                         "status": 1,
                                         "message": f"ERR: Data '{name}' is not initialized at col {col}.",
@@ -1723,7 +1723,7 @@ class Trawpaw:
                                 try:
                                     self.datalist[name]["type"] = "linkmemory"
                                     self.datalist[name]["value"] = self.cursor
-                                except:
+                                except KeyError:
                                     return {
                                         "status": 1,
                                         "message": f"ERR: Data '{name}' is not initialized at col {col}.",
@@ -1734,7 +1734,7 @@ class Trawpaw:
                                 # delete data
                                 try:
                                     del self.datalist[name]
-                                except:
+                                except KeyError:
                                     return {
                                         "status": 1,
                                         "message": f"ERR: Data '{name}' is not initialized at col {col}.",
@@ -1828,7 +1828,7 @@ def main():
     try:
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 
-        # F**k your ^[[D on linux, to fix this sh*t, I have to spend a lot of times to fix it, it will makes my program SLOWER + I didnt know will it work.
+        # How can I describe your ^[[D on linux, to fix this, I have to spend a lot of time to fix it, it will makes my program SLOWER + I didnt know will it work.
         from prompt_toolkit import prompt  # type: ignore
 
         parser = ArgumentParser(
