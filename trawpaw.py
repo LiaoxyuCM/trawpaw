@@ -38,10 +38,10 @@ runbf        :Module           :Run a Brainfuck code stored in a function variab
 
 runwaste
     @          :Module           :Set the cursor address to 0, run a Waste code (preview) stored in a function variable, another arg is the save of waste
-    | Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
+    | Syntax: `!$runwaste[waste_code: variable<function>][save_in_waste_storeto: variable<number>]`
 
     preview    :Module           :Run a Waste code (preview) stored in a function variable, another arg is the save of waste
-    | Syntax: `!$runwaste.preview[waste_code: variable<function>][save_in_waste_storeto: variable<any>]`
+    | Syntax: `!$runwaste.preview[waste_code: variable<function>][save_in_waste_storeto: variable<number>]`
 
 include      :Module           :Include and run a Trawpaw code from a file (influences current data)
 | Syntax: `!$include[file_path: variable<string>]`
@@ -123,7 +123,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.5"
+VERSION: str = "5.5_docfix_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
