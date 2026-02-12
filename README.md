@@ -8,7 +8,7 @@ At least it is a turing complete.
 
 ### Python
 
-Version: 5.5_docfix_1
+Version: 5.6
 
 #### Use our cli
 

@@ -23,6 +23,7 @@ _            :                 :Pause execution for 1s (normal) or 0.1s (! modif
 [pattern]    :Bracket          :Loop twice (normal) 50% chance skip all inside (! modifier)
 (pattern)    :Bracket          :Normal: skip if cell=0; !: skip if cell≠0
 {pattern}    :Bracket          :Comment
+
 I            :VarController    :Init/reset variable and set it's type to number (used after $[name])
 W            :VarController    :Set it's type to number and write current cell value to variable (used after $[name])
 R            :VarController    :Read variable value to current cell (used after $[name])
@@ -30,8 +31,10 @@ L            :VarController    :Link variable to current cursor position (used a
 D            :VarController    :Delete variable (used after $[name])
 F            :VarController    :Define a function (used after $[name])
 S            :VarController    :Define a string variable (used after $[name])
+
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
+M            :DebugMark        :Show current memories and max value per memory.
 
 runbf        :Module           :Run a Brainfuck code stored in a function variable
 | Syntax: `!$runbf[bf_code: variable<function>]`
@@ -123,7 +126,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.5_docfix_1"
+VERSION: str = "5.6"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -811,6 +814,16 @@ class Trawpaw:
                                 print(str(self.cursor), end="")
                                 sys.stdout.flush()
                             result += str(self.cursor)
+                        elif code[col - startAtCol].upper() == "M":
+                            if execution_method == TrawpawExecutionMethod.printManually:
+                                print(
+                                    str(len(self.memories))
+                                    + " "
+                                    + str(self.maxvaluepermem - 1),
+                                    end="",
+                                )
+                                sys.stdout.flush()
+                            result += str(bracketlist)
                         else:
                             return {
                                 "status": 1,
