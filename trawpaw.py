@@ -123,7 +123,7 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.4"
+VERSION: str = "5.5"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -660,6 +660,45 @@ class Trawpaw:
                 "datalistlength": len(self.datalist),
             }
 
+    def skipInside(self, code: str, bracket: str, col: int, startAtCol: int) -> dict:
+        bracketStack: list[dict] = [
+            {
+                "type": bracket,
+            }
+        ]
+
+        while bracketStack:
+            match code[col - startAtCol]:
+                case "[" | "(" | "{":
+                    bracketStack.append({"type": code[col - startAtCol]})
+                case "}":
+                    if bracketStack:
+                        if bracketStack[-1]["type"] == "{":
+                            bracketStack.pop()
+                        else:
+                            return {"status": 1, "col": col}
+                    else:
+                        return {"status": 1, "col": col}
+                case "]":
+                    if bracketStack:
+                        if bracketStack[-1]["type"] == "[":
+                            bracketStack.pop()
+                        else:
+                            return {"status": 1, "col": col}
+                    else:
+                        return {"status": 1, "col": col}
+                case ")":
+                    if bracketStack:
+                        if bracketStack[-1]["type"] == "(":
+                            bracketStack.pop()
+                        else:
+                            return {"status": 1, "col": col}
+                    else:
+                        return {"status": 1, "col": col}
+            col += 1
+
+        return {"status": 0, "col": col}
+
     def execute(
         self,
         code: str,
@@ -781,113 +820,67 @@ class Trawpaw:
                             }
                         special = 0
                     case "[":
-                        bracketlist.append(
-                            {
-                                "bracket": "[",
-                                "col": col,
-                                "special": bool(special),
-                                "ranges": 0,
-                            }
-                        )
                         if bool(special):
                             if not randint(0, 1):
-                                token = 1
-                                while token:
-                                    col += 1
-                                    if code[col - startAtCol] in ["[", "{", "("]:
-                                        token += 1
-                                    if code[col - startAtCol] in ["]", "}", ")"]:
-                                        if token == 1:
-                                            if code[col - startAtCol] != "]":
-                                                return {
-                                                    "status": 1,
-                                                    "message": f"ERR: This bracket is not properly closed at col {col}.",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            else:
-                                                token -= 1
-                                        else:
-                                            token -= 1
-                                bracketlist.pop()
+                                skip_rs = self.skipInside(code, "[", col + 1, 0)
+                                if skip_rs["status"] == 1:
+                                    return {
+                                        "status": 1,
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                    }
+                                else:
+                                    col = skip_rs["col"] - 1
+                            else:
+                                bracketlist.append(
+                                    {"bracket": "[", "col": col, "special": True}
+                                )
+                        else:
+                            bracketlist.append(
+                                {
+                                    "bracket": "[",
+                                    "col": col,
+                                    "special": bool(special),
+                                    "ranges": 0,
+                                }
+                            )
                         special = 0
                     case "(":
-                        bracketlist.append(
-                            {"bracket": "(", "col": col, "special": bool(special)}
-                        )
                         if bool(special):
                             if self.memories[self.cursor] != 0:
-                                token = 1
-                                while token:
-                                    col += 1
-                                    if code[col - startAtCol] in ["[", "{", "("]:
-                                        token += 1
-                                    if code[col - startAtCol] in ["]", "}", ")"]:
-                                        if token == 1:
-                                            if code[col - startAtCol] != ")":
-                                                return {
-                                                    "status": 1,
-                                                    "message": f"ERR: This bracket is not properly closed at col {col}.",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            else:
-                                                token -= 1
-                                        else:
-                                            token -= 1
-                                bracketlist.pop()
+                                skip_rs = self.skipInside(code, "(", col + 1, 0)
+                                if skip_rs["status"] == 1:
+                                    return {
+                                        "status": 1,
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                else:
+                                    col = skip_rs["col"] - 1
                         else:
                             if self.memories[self.cursor] == 0:
-                                token = 1
-                                while token:
-                                    col += 1
-                                    if code[col - startAtCol] in ["[", "{", "("]:
-                                        token += 1
-                                    if code[col - startAtCol] in ["]", "}", ")"]:
-                                        if token == 1:
-                                            if code[col - startAtCol] != ")":
-                                                return {
-                                                    "status": 1,
-                                                    "message": f"ERR: This bracket is not properly closed at col {col}.",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            else:
-                                                token -= 1
-                                        else:
-                                            token -= 1
-                                bracketlist.pop()
+                                skip_rs = self.skipInside(code, "(", col + 1, 0)
+                                if skip_rs["status"] == 1:
+                                    return {
+                                        "status": 1,
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                else:
+                                    col = skip_rs["col"] - 1
                         special = 0
                     case "{":
-                        bracketlist.append(
-                            {"bracket": "{", "col": col, "special": bool(special)}
-                        )
-
-                        token = 1
-                        while token:
-                            col += 1
-                            if code[col - startAtCol] in ["[", "{", "("]:
-                                token += 1
-                            if code[col - startAtCol] in ["]", "}", ")"]:
-                                if token == 1:
-                                    if code[col - startAtCol] != "}":
-                                        return {
-                                            "status": 1,
-                                            "message": f"ERR: This bracket is not properly closed at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
-                                    else:
-                                        token -= 1
-                                else:
-                                    token -= 1
-                        bracketlist.pop()
+                        skip_rs = self.skipInside(code, "{", col + 1, 0)
+                        if skip_rs["status"] == 1:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
+                        else:
+                            col = skip_rs["col"] - 1
                         special = 0
                     case "]":
                         if not bracketlist:
@@ -904,11 +897,12 @@ class Trawpaw:
                                 "cursor": self.cursor,
                                 "datalistlength": len(self.datalist),
                             }
-                        elif bracketlist[-1]["special"]:
-                            pass
-                        elif bracketlist[-1]["ranges"] == 0:
-                            col = bracketlist[-1]["col"]
-                            bracketlist[-1]["ranges"] += 1
+                        elif not bracketlist[-1]["special"]:
+                            if bracketlist[-1]["ranges"] == 0:
+                                col = bracketlist[-1]["col"]
+                                bracketlist[-1]["ranges"] += 1
+                            else:
+                                bracketlist.pop()
                         else:
                             bracketlist.pop()
                         special = 0
