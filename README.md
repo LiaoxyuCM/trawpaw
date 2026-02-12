@@ -32,9 +32,21 @@ of this pointer is 0 and `v:0` means there are 0 variables defined.
 
 #### Execute in-python-program
 
-You need to download the source code from the latest release from
-[our releases](https://github.com/LiaoxyuCM/trawpaw/releases)
-and unzip it. Then you can import the `trawpaw` module in your Python code
+You need to clone this repository and install the dependencies first.
+
+Just run the following command in your terminal:
+
+Notice: If the previous command doesn't work, you need to check your
+installation or your network, then retry.
+
+```sh
+git clone https://github.com/LiaoxyuCM/trawpaw.git
+cd trawpaw
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Then you can import the `trawpaw` module in your Python code
 and use the `Trawpaw` class to execute Trawpaw code.
 
 It requires Python Interpreter v3.10 or higher.
