@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.0-waste1.0.1
+Version: 6.0_1-waste1.0.1
 
 #### Use our cli
 

@@ -131,7 +131,7 @@ from time import sleep
 from prompt_toolkit import prompt
 import sys, os, enum, urllib.parse, hashlib, base64
 
-VERSION: str = "6.0-waste1.0.1"
+VERSION: str = "6.0_1-waste1.0.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -2189,7 +2189,7 @@ def main():
                 #     print(getattr(trawpaw_result, "result", ""))
                 if args.waste_preview or args.waste:
                     code = prompt("[waste] ")
-                if args.brainfuck:
+                elif args.brainfuck:
                     code = prompt(f"[bf c:{trawpaw_result.cursor}] ")
                 else:
                     code = prompt(
