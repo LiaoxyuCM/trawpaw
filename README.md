@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 5.6_1
+Version: 6.0
 
 #### Use our cli
 
@@ -53,12 +53,38 @@ It requires Python Interpreter v3.10 or higher.
 
 ```py
 import trawpaw;
-executor = trawpaw.Trawpaw();
+executor = trawpaw.Trawpaw(
+    # The length of cells, default: 128 (0 < cells <= 65536)
+    # it called "memories" before 6.0
+    cells=128,
+    # The max value per cell, default: 127 (0 < maxvaluepercell <= 65536)
+    # it called "maxvaluepermem" before 6.0
+    maxvaluepercell=127,
+);
 result = executor.execute(
     "Your trawpaw source code",
     "Input when this project requires input (optional)",
-    clearHistory=False # clearHistory: default value is False
-);
+    
+    clearHistory=False, # clearHistory: default value is False
+    
+    startAtCol=0, # Never pass this parameter; let it be handled internally only.
+
+    # Name of this parameter uses camel case since 6.0
+    # before 6.0, it uses snake case.
+    # You can pass this parameter using one of:
+    # - TrawpawExecutionMethod.printManually: to print the result manually (default)
+    #                                         and do `~.storeInResult` (see below)
+    # - TrawpawExecutionMethod.storeInResult: to store in the result as a string
+    #                                  then return it when execution is finished
+    executionMethod=TrawpawExecutionMethod.printManually
+
+
+); # Returns dict before v6.0, returns TrawpawResult since v6.0
+```
+
+Before v6.0
+
+```py
 if trawpaw_result["status"] == 1:
   print(result.get("message", "ERR: Unknown error occurred."))
 else:
@@ -66,7 +92,18 @@ else:
 
 ```
 
-`Treapaw().execute()` will return a dictionary with the following keys
+Since v6.0
+
+```py
+if trawpaw_result.status == 1:
+  print(result.message)
+else:
+  print(result.result)
+```
+
+`Treapaw().execute()` will returns a dictionary \(before v6.0\)
+or returns a `TrawpawResult` object \(since v6.0\)
+with the following keys
 
 - status
 
@@ -81,6 +118,12 @@ else:
 
 - result: If status is 0 or 2, this key will contain the output
   of the Trawpaw code. Else, it's not exist.
+
+- cursor: The current address of the pointer after executing the code.
+  \(Not recommended, only for REPL\)
+
+- datalistlength: The length of the datalist after executing the code.
+  \(Not recommended, only for REPL\)
 
 ### JavaScript (Front-end)
 
@@ -114,7 +157,7 @@ Before v4.5
 !##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
 ```
 
-v4.5 \(or later\)
+Since v4.5
 
 ```trawpaw
 !!#$ai$as"Hello, world!"!$print$a
