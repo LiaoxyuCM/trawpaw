@@ -131,7 +131,7 @@ from time import sleep
 from prompt_toolkit import prompt
 import sys, os, enum, urllib.parse, hashlib, base64
 
-VERSION: str = "6.0"
+VERSION: str = "6.0-waste1.0.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -349,22 +349,27 @@ class Trawpaw:
                     break
                 case "＃" | "#":
                     self.cells[self.cursor] = 0
-                case "+":
+                case "+" | "＋":
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] + 1
                     ) % self.maxvaluepercell
-                case "-":
+                case "-" | "－":
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] - 1
                     ) % self.maxvaluepercell
-                case "*":
+                case "*" | "＊":
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] * 2
                     ) % self.maxvaluepercell
-                case "/":
+                case "/" | "／":
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] // 2
                     ) % self.maxvaluepercell
+                case ";" | "；":
+                    if randint(0, 1):
+                        self.cells[self.cursor] = (
+                            self.cells[self.cursor] + 1
+                        ) % self.maxvaluepercell
                 case "％" | "%":
                     if executionMethod == TrawpawExecutionMethod.printManually:
                         print(str(self.cells[self.cursor]), end="")
@@ -565,13 +570,13 @@ class Trawpaw:
                     break
                 case "＃" | "#":
                     ptr = 0
-                case "+":
+                case "+" | "＋":
                     ptr = (ptr + 1) % self.maxvaluepercell
-                case "-":
+                case "-" | "－":
                     ptr = (ptr - 1) % self.maxvaluepercell
-                case "*":
+                case "*" | "＊":
                     ptr = (ptr * 2) % self.maxvaluepercell
-                case "/":
+                case "/" | "／":
                     ptr = (ptr // 2) % self.maxvaluepercell
                 case "％" | "%":
                     if executionMethod == TrawpawExecutionMethod.printManually:

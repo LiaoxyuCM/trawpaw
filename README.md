@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.0
+Version: 6.0-waste1.0.1
 
 #### Use our cli
 
@@ -186,13 +186,13 @@ Since v4.5
 ### Standard
 
 ```versionrule
-<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]
+<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]-waste<tag>
 ```
 
 ### Prerelease & Release Candidate
 
 ```versionrule
-<major>.0-(pre|rc)<minor>
+<major>.0-(pre|rc)<minor>-waste<tag>
 ```
 
 ## Thanks
