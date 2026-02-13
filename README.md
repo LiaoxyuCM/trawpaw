@@ -2,13 +2,13 @@
 
 We wish it is humane.
 
-At least it is a turing complete.
+At least it is a Turing complete.
 
 ## Usage
 
 ### Python
 
-Version: 5.6
+Version: 5.6_1
 
 #### Use our cli
 
@@ -65,6 +65,22 @@ else:
   print(result.get("result", ""))
 
 ```
+
+`Treapaw().execute()` will return a dictionary with the following keys
+
+- status
+
+| status | meaning   |
+| ------ | --------- |
+| 0      | OK        |
+| 1      | Error     |
+| 2      | Interrupt |
+
+- message: If status is 1, this key will contain the error message.
+  Else, it's not exist.
+
+- result: If status is 0 or 2, this key will contain the output
+  of the Trawpaw code. Else, it's not exist.
 
 ### JavaScript (Front-end)
 

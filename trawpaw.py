@@ -126,12 +126,13 @@ ADDITIONAL NOTES:
 
 """
 
-VERSION: str = "5.6"
+VERSION: str = "5.6_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
 from random import randint
 from time import sleep
+from prompt_toolkit import prompt
 import sys, os, enum, urllib.parse, hashlib, base64
 
 
@@ -312,7 +313,7 @@ class Trawpaw:
                         sys.stdout.flush()
                     out += str(self.memories[self.cursor])
                 case "＆" | "&":
-                    input("Breakpoint reached. Press Enter to continue...")
+                    prompt("breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
                         if execution_method == TrawpawExecutionMethod.printManually:
@@ -519,7 +520,7 @@ class Trawpaw:
                         sys.stdout.flush()
                     out += str(ptr)
                 case "＆" | "&":
-                    input("Breakpoint reached. Press Enter to continue...")
+                    prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
                         if execution_method == TrawpawExecutionMethod.printManually:
@@ -798,7 +799,7 @@ class Trawpaw:
                                 "datalistlength": len(self.datalist),
                             }
                         else:
-                            input("Breakpoint reached. Press Enter to continue...")
+                            prompt("Breakpoint reached. Press Enter to continue...")
                         special = 0
                     case "!":
                         special += 1
@@ -839,7 +840,7 @@ class Trawpaw:
                                 if skip_rs["status"] == 1:
                                     return {
                                         "status": 1,
-                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
                                     }
                                 else:
                                     col = skip_rs["col"] - 1
@@ -864,36 +865,88 @@ class Trawpaw:
                                 if skip_rs["status"] == 1:
                                     return {
                                         "status": 1,
-                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
                                         "cursor": self.cursor,
                                         "datalistlength": len(self.datalist),
                                     }
                                 else:
                                     col = skip_rs["col"] - 1
+                            else:
+                                bracketlist.append(
+                                    {
+                                        "bracket": "(",
+                                        "col": col,
+                                    }
+                                )
                         else:
                             if self.memories[self.cursor] == 0:
                                 skip_rs = self.skipInside(code, "(", col + 1, 0)
                                 if skip_rs["status"] == 1:
                                     return {
                                         "status": 1,
-                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                        "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
                                         "cursor": self.cursor,
                                         "datalistlength": len(self.datalist),
                                     }
                                 else:
                                     col = skip_rs["col"] - 1
+                            else:
+                                bracketlist.append(
+                                    {
+                                        "bracket": "(",
+                                        "col": col,
+                                    }
+                                )
+                        special = 0
+                    case ")":
+                        if bracketlist:
+                            if bracketlist[-1]["bracket"] == "(":
+                                bracketlist.pop()
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: This bracket is not properly opened at col {col}.",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: This bracket is not properly opened at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
                         special = 0
                     case "{":
                         skip_rs = self.skipInside(code, "{", col + 1, 0)
                         if skip_rs["status"] == 1:
                             return {
                                 "status": 1,
-                                "message": f"ERR: Bracket is not properly closed at col {skip_rs['col'] - 1}",
+                                "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
                                 "cursor": self.cursor,
                                 "datalistlength": len(self.datalist),
                             }
                         else:
                             col = skip_rs["col"] - 1
+                        special = 0
+                    case "}":
+                        if bracketlist:
+                            if bracketlist[-1]["bracket"] == "{":
+                                bracketlist.pop()
+                            else:
+                                return {
+                                    "status": 1,
+                                    "message": f"ERR: This bracket is not properly opened at col {col}.",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                        else:
+                            return {
+                                "status": 1,
+                                "message": f"ERR: This bracket is not properly opened at col {col}.",
+                                "cursor": self.cursor,
+                                "datalistlength": len(self.datalist),
+                            }
                         special = 0
                     case "]":
                         if not bracketlist:
@@ -1834,9 +1887,6 @@ class Trawpaw:
 def main():
     try:
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
-
-        # How can I describe your ^[[D on linux, to fix this, I have to spend a lot of time to fix it, it will makes my program SLOWER + I didnt know will it work.
-        from prompt_toolkit import prompt  # type: ignore
 
         parser = ArgumentParser(
             usage="trawpaw.py [options] <file>",
