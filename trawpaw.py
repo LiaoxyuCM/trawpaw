@@ -129,9 +129,14 @@ ADDITIONAL NOTES:
 from random import randint
 from time import sleep
 from prompt_toolkit import prompt
-import sys, os, enum, urllib.parse, hashlib, base64
+import sys
+import os
+import enum
+import urllib.parse
+import hashlib
+import base64
 
-VERSION: str = "6.0_1-waste1.0.1"
+VERSION: str = "6.0.1_1-waste1.0.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
