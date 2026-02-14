@@ -137,7 +137,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "6.1"
+VERSION: str = "6.0.2"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
