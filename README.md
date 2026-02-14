@@ -1,6 +1,6 @@
 # Trawpaw
 
-We wish it is humane.
+Please support [Waste-Professional](https://github.com/ChenQingMua/WasteLanguage-Professional)!!!
 
 At least it is a Turing complete.
 
@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.0.1_1-waste1.0.1
+Version: 6.1
 
 #### Use our cli
 
@@ -77,10 +77,10 @@ result = executor.execute(
     # - TrawpawExecutionMethod.storeInResult: to store in the result as a string
     #                                  then return it when execution is finished
     executionMethod=TrawpawExecutionMethod.printManually
-
-
 ); # Returns dict before v6.0, returns TrawpawResult since v6.0
 ```
+
+##### Handle the result
 
 Before v6.0
 
@@ -186,13 +186,13 @@ Since v4.5
 ### Standard
 
 ```versionrule
-<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]-waste<tag>
+<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]-[waste<tag>]
 ```
 
 ### Prerelease & Release Candidate
 
 ```versionrule
-<major>.0-(pre|rc)<minor>-waste<tag>
+<major>.0-(pre|rc)<minor>[_<patch>]-[waste<tag>]
 ```
 
 ## Thanks

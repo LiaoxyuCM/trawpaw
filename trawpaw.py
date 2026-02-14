@@ -20,6 +20,7 @@ $            :                 :Define/Call data (followed by [name][controller]
 _            :                 :Pause execution for 1s (normal) or 0.1s (! modifier)
 &            :                 :Breakpoint for debugging (waits for user input to continue) (normal) Quit program and return result (! modifier)
 !            :Special          :Modify next command's behavior (special mode)
+
 [pattern]    :Bracket          :Loop twice (normal) 50% chance skip all inside (! modifier)
 (pattern)    :Bracket          :Normal: skip if cell=0; !: skip if cell≠0
 {pattern}    :Bracket          :Comment
@@ -136,7 +137,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "6.0.1_1-waste1.0.1"
+VERSION: str = "6.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -1630,14 +1631,14 @@ class Trawpaw:
                             )
                     elif dofunction == "string.unescape":
                         escape = {
-                            "®": "&reg;",
-                            " ": "&nbsp;",
-                            '"': "&quot;",
-                            "\n": "<br>",
                             "&": "&amp;",
                             "<": "&lt;",
                             ">": "&gt;",
                             "©": "&copy;",
+                            "®": "&reg;",
+                            '"': "&quot;",
+                            " ": "&nbsp;",
+                            "\n": "<br>",
                         }
                         col += 1
                         varname = code[col - startAtCol]
@@ -2094,7 +2095,7 @@ def main():
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 
         parser = ArgumentParser(
-            usage="trawpaw.py [options] <file>",
+            usage="trawpaw [options] <file>",
             description="Trawpaw Interpreter v" + VERSION,
             formatter_class=RawTextHelpFormatter,
         )
@@ -2169,7 +2170,7 @@ def main():
                 f.close()
             sys.exit(0)
         else:
-            print("Run `~ --usage` (~ means trawpaw src) for more information")
+            print("Run `trawpaw --usage` for more information")
             print("Press Ctrl+C to exit.")
             if args.waste or args.waste_preview:
                 trawpaw.datalist["a"] = {"type": "number", "value": 0}
