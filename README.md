@@ -1,6 +1,6 @@
 # Trawpaw
 
-Please support [Waste-Professional](https://github.com/ChenQingMua/WasteLanguage-Professional)!!!
+Please support [Waste-Professional](https://github.com/ChenQingMua/WasteLanguage-Professional)
 
 At least it is a Turing complete.
 
@@ -8,11 +8,11 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.1
+Version: 6.2
 
 #### Use our cli
 
-Now supports Windows, MacOS and Linux. You can use the command line interface
+Now, trawpaw supports Windows, MacOS and Linux. You can use the command line interface
 to execute Trawpaw code.
 
 Download the latest release from [our releases](https://github.com/LiaoxyuCM/trawpaw/releases)
@@ -186,13 +186,13 @@ Since v4.5
 ### Standard
 
 ```versionrule
-<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>]-[waste<tag>]
+<major>.<minor_l1>[.<minor_l2>[.<minor_l3>[...]]][_<patch>][-waste<tag>]
 ```
 
 ### Prerelease & Release Candidate
 
 ```versionrule
-<major>.0-(pre|rc)<minor>[_<patch>]-[waste<tag>]
+<major>.0-(pre|rc)<minor>[_<patch>][-waste<tag>]
 ```
 
 ## Thanks

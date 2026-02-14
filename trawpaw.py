@@ -91,6 +91,13 @@ string
     unescape   :Module           :HTML-unescape a string variable
     | Syntax: `!$string.unescape[original_str: variable<string>]`
 
+    offset
+        forward     :Module       :The ASCII of each character will be subtracted by 1, store the result in a string variable (e.g. "bcd" -> "abc")
+        | Syntax: `!$string.offset.forward[original_str: variable<string>]`
+
+        backward    :Module       :The ASCII of each character will be added by 1, store the result in a string variable (e.g. "abc" -> "bcd")
+        | Syntax: `!$string.offset.backward[original_str: variable<string>]`
+
 hash
     md5        :Module           :MD5-hash a string variable
     | Syntax: `!$hash.md5[original_str: variable<string>]`
@@ -138,7 +145,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "6.1"
+VERSION: str = "6.2"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -1873,6 +1880,51 @@ class Trawpaw:
                                 new_string = base64.b64decode(
                                     self.datalist[varname]["value"].encode()
                                 ).decode()
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return TrawpawResult(
+                                    {
+                                        "status": 1,
+                                        "message": f"ERR: Variable must be a string at col {col}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                )
+                        else:
+                            return TrawpawResult(
+                                {
+                                    "status": 1,
+                                    "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                            )
+                    elif dofunction == "string.offset.forward":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = ""
+                                for char in self.datalist[varname]["value"]:
+                                    new_string += chr(ord(char) - 1)
+                                self.datalist[varname]["value"] = new_string
+                            else:
+                                return TrawpawResult(
+                                    {
+                                        "status": 1,
+                                        "message": f"ERR: Variable must be a string at col {col}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                )
+                    elif dofunction == "string.offset.backward":
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            if self.datalist[varname]["type"] == "string":
+                                new_string = ""
+                                for char in self.datalist[varname]["value"]:
+                                    new_string += chr(ord(char) + 1)
                                 self.datalist[varname]["value"] = new_string
                             else:
                                 return TrawpawResult(
