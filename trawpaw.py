@@ -36,6 +36,7 @@ S            :VarController    :Define a string variable (used after $[name])
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
 M            :DebugMark        :Show count of cells and max value per cell.
+B            :DebugMark        :Show current datalist (variables)
 
 runbf        :Module           :Run a Brainfuck code stored in a function variable
 | Syntax: `!$runbf[bf_code: variable<function>]`
@@ -137,7 +138,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "6.0.3"
+VERSION: str = "6.1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -853,6 +854,15 @@ class Trawpaw:
                                     + str(self.maxvaluepercell - 1),
                                     end="",
                                 )
+                                sys.stdout.flush()
+                            result += (
+                                str(len(self.cells))
+                                + " "
+                                + str(self.maxvaluepercell - 1)
+                            )
+                        elif code[col - startAtCol].upper() == "B":
+                            if executionMethod == TrawpawExecutionMethod.printManually:
+                                print(str(bracketlist), end="")
                                 sys.stdout.flush()
                             result += str(bracketlist)
                         else:
