@@ -137,7 +137,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "6.0.2"
+VERSION: str = "6.0.3"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -2141,9 +2141,9 @@ def main():
         )
 
         args: Namespace = parser.parse_args()
-        trawpaw: Trawpaw
+        trawpaw_executor: Trawpaw
         try:
-            trawpaw = Trawpaw(args.cells, args.maxvaluepercell)
+            trawpaw_executor = Trawpaw(args.cells, args.maxvaluepercell)
         except AssertionError as e:
             print(f"ERR: {e}")
             sys.exit(1)
@@ -2155,15 +2155,15 @@ def main():
             with open(args.file, "r", encoding="utf-8") as f:
                 code: str = f.read()
                 if args.waste_preview:
-                    trawpaw.datalist["a"] = {"type": "number", "value": 0}
-                    trawpaw_result = trawpaw.runWastePreview(code, "a")
+                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
                 elif args.waste:
-                    trawpaw.datalist["a"] = {"type": "number", "value": 0}
-                    trawpaw_result = trawpaw.runWaste(code, "a")
+                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
                 elif args.brainfuck:
-                    trawpaw_result = trawpaw.runBrainfk(code)
+                    trawpaw_result = trawpaw_executor.runBrainfk(code)
                 else:
-                    trawpaw_result = trawpaw.execute(code)
+                    trawpaw_result = trawpaw_executor.execute(code)
                 print(end="\n")
                 if trawpaw_result.status == 1:
                     print(trawpaw_result.message)
@@ -2173,7 +2173,7 @@ def main():
             print("Run `trawpaw --usage` for more information")
             print("Press Ctrl+C to exit.")
             if args.waste or args.waste_preview:
-                trawpaw.datalist["a"] = {"type": "number", "value": 0}
+                trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
                 code = prompt("[waste] ")
             elif args.brainfuck:
                 code = prompt("[bf c:0] ")
@@ -2181,13 +2181,13 @@ def main():
                 code = prompt("[c:0 v:0] ")
             while True:
                 if args.waste_preview:
-                    trawpaw_result = trawpaw.runWastePreview(code, "a")
+                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
                 elif args.waste:
-                    trawpaw_result = trawpaw.runWaste(code, "a")
+                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
                 elif args.brainfuck:
-                    trawpaw_result = trawpaw.runBrainfk(code)
+                    trawpaw_result = trawpaw_executor.runBrainfk(code)
                 else:
-                    trawpaw_result = trawpaw.execute(code)
+                    trawpaw_result = trawpaw_executor.execute(code)
                 print(end="\n")
                 if trawpaw_result.status == 1:
                     print(trawpaw_result.message)

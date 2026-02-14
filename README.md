@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.0.2
+Version: 6.0.3
 
 #### Use our cli
 
@@ -76,7 +76,7 @@ result = executor.execute(
     #                                         and do `~.storeInResult` (see below)
     # - TrawpawExecutionMethod.storeInResult: to store in the result as a string
     #                                  then return it when execution is finished
-    executionMethod=TrawpawExecutionMethod.printManually
+    executionMethod=trawpaw.TrawpawExecutionMethod.printManually
 ); # Returns dict before v6.0, returns TrawpawResult since v6.0
 ```
 
