@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 6.2
+Version: 7.0
 
 #### Use our cli
 
@@ -161,6 +161,81 @@ Since v4.5
 
 ```trawpaw
 !!#$ai$as"Hello, world!"!$print$a
+```
+
+## Advanced Tutor
+
+### Register your custom module
+
+Your Trawpaw executor has a method to register your custom module.
+Here is an example of how to register a custom module:
+
+```py
+@trawpaw_executor.registerCustomModule(
+    # param name: str: The name of this module.
+    name="module name",
+    # param avaliableDatatypes: trawpaw.TrawpawDatatypes:
+    # ---- The datatypes that this module can handle.
+    # ---- Note: TrawpawDatatypes is a flag, so you can
+    # ----     combine multiple datatypes using bitwise OR operator (|).
+    avaliableDatatypes=trawpaw.TrawpawDatatypes.String | trawpaw.TrawpawDatatypes.Number,
+    # param handleResult: trawpaw.TrawpawHandleModuleResult:
+    # ---- Ways to handle the result of this module.
+    # ---- Default value is `TrawpawHandleModuleResult.printManually`
+    handleResult=trawpaw.TrawpawHandleModuleResult.printManually
+)
+def foo(arg: str | int) -> str: # Your module should receive (only) one argument
+    return f"Your input is {arg}"
+```
+
+#### Datatypes table
+
+| in trawpaw | in python class (original) | in enum (flag) TrawpawDatatypes |
+| ---------- | -------------------------- | ------------------------------- |
+| "string"   | str                        | TrawpawDatatypes.String         |
+| "number"   | int                        | TrawpawDatatypes.Number         |
+| "function" | TrawpawFunction            | TrawpawDatatypes.Function       |
+| "linkcell" | TrawpawLinkCell            | TrawpawDatatypes.LinkCell       |
+
+Notice: Before v7.0, "linkcell" is called "linkmemory".
+
+- We will infer their data type in trawpaw
+  based on the return value of your custom modules.
+  \(python class =&gt; datatypes in trawpaw\)
+
+  If failed, the executor will throw an error.
+
+- Absolutely, we will infer the type of argument of your custom module based on
+  the parameter `avaliableDatatypes` in `executor.registerCustomModule`
+
+  \(TrawpawDatatypes =&gt; python class\)
+
+  If failed, same, the executor will throw an error.
+
+#### Handle the result of your custom module
+
+Use `TrawpawHandleModuleResult` to handle the result of your custom module.
+
+| Option          | Meaning                                                    |
+| --------------- | ---------------------------------------------------------- |
+| assignToVar     | Store the result in the argument of your module            |
+| storeToCurrCell | Store the result in the current cell of Trawpaw (int only) |
+| printManually   | Print the result manually (default)(str \| int only)       |
+
+#### Something about TrawpawFunction and TrawpawLinkCell
+
+Encapsulation (object definition)
+
+```py
+TrawpawFunction(function_content: str)
+TrawpawLinkCell(cell_address: int)
+```
+
+Get content
+
+```py
+trawpaw_function.value # trawpaw_function is instance of TrawpawFunction
+trawpaw_link_cell.value # trawpaw_link_cell is instance of TrawpawLinkCell
 ```
 
 ## Help
