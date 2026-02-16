@@ -1,7 +1,5 @@
 # Trawpaw
 
-Please support [Waste-Professional](https://github.com/ChenQingMua/WasteLanguage-Professional)
-
 At least it is a Turing complete.
 
 ## Usage
@@ -190,12 +188,12 @@ def foo(arg: str | int) -> str: # Your module should receive (only) one argument
 
 #### Datatypes table
 
-| in trawpaw | in python class (original) | in enum (flag) TrawpawDatatypes |
-| ---------- | -------------------------- | ------------------------------- |
-| "string"   | str                        | TrawpawDatatypes.String         |
-| "number"   | int                        | TrawpawDatatypes.Number         |
-| "function" | TrawpawFunction            | TrawpawDatatypes.Function       |
-| "linkcell" | TrawpawLinkCell            | TrawpawDatatypes.LinkCell       |
+| datatypes in trawpaw |  python class (original) | in enum (flag) TrawpawDatatypes |
+| -------------------- | ------------------------ | ------------------------------- |
+| "string"             | str                      | TrawpawDatatypes.String         |
+| "number"             | int                      | TrawpawDatatypes.Number         |
+| "function"           | TrawpawFunction          | TrawpawDatatypes.Function       |
+| "linkcell"           | TrawpawLinkCell          | TrawpawDatatypes.LinkCell       |
 
 Notice: Before v7.0, "linkcell" is called "linkmemory".
 
