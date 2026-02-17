@@ -151,8 +151,8 @@ def handle_hash_sha384(arg: str):
 ### HASH.SHA512 ###
 
 @executor.registerCustomModule(name="hash.sha512",
-                                 avaliableDatatypes=TrawpawDatatypes.String,
-                                 handleResult=TrawpawHandleModuleResult.assignToVar)
+                               avaliableDatatypes=TrawpawDatatypes.String,
+                               handleResult=TrawpawHandleModuleResult.assignToVar)
 def handle_hash_sha512(arg: str):
     return hashlib.sha512(arg.encode()).hexdigest()
 
