@@ -190,6 +190,8 @@ def foo(arg: str | int) -> str: # Your module should receive (only) one argument
 If the newly registered module has the same name as an existing module,
 the newly module will override the existing module.
 
+Please read `customModulesExample.py` for examples.
+
 #### Datatypes table
 
 | datatypes in trawpaw |  python class    | enum (flag) TrawpawDatatypes |
