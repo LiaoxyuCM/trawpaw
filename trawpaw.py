@@ -146,7 +146,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "7.0"
+VERSION: str = "7.0_1"
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -198,9 +198,12 @@ class TrawpawLinkCell:
     def __str__(self) -> str:
         return str(self.value)
 
-
 class Trawpaw:
-    def __init__(self, cells: int = 128, maxvaluepercell: int = 127) -> None:
+    def __init__(
+        self,
+        cells: int = 128,
+        maxvaluepercell: int = 127,
+    ) -> None:
         assert cells > 0, "Number of cells must be greater than 0."
         assert maxvaluepercell >= 0, (
             "Max value per cell must be greater than or equals 0."
@@ -240,7 +243,16 @@ class Trawpaw:
                 "avaliableDataTypes": avaliableDatatypes,
             }
 
+        if "$" in name:
+            raise ValueError("Module name cannot contain '$' character.")
+
         return decorator
+
+    def unregisterCustomModule(self, name: str):
+        try:
+            del self.customModules[name]
+        except KeyError:
+            raise KeyError(f"Module '{name}' is not exist.")
 
     def runBrainfk(
         self,
@@ -1097,7 +1109,162 @@ class Trawpaw:
                     while code[col - startAtCol] != "$":
                         dofunction += code[col - startAtCol]
                         col += 1
-                    if dofunction == "runbf":
+
+                    if dofunction in self.customModules.keys():
+                        customModule = self.customModules[dofunction]
+                        col += 1
+                        varname = code[col - startAtCol]
+                        if self.datalist.get(varname):
+                            passarg = self.datalist[varname]["value"]
+
+                            if (self.datalist[varname]["type"] == "string") and (
+                                TrawpawDatatypes.String
+                                in customModule["avaliableDataTypes"]
+                            ):
+                                module_result = customModule["function"](passarg)
+                            elif (self.datalist[varname]["type"] == "function") and (
+                                TrawpawDatatypes.Function
+                                in customModule["avaliableDataTypes"]
+                            ):
+                                module_result = customModule["function"](
+                                    TrawpawFunction(passarg)
+                                )
+                            elif (self.datalist[varname]["type"] == "number") and (
+                                TrawpawDatatypes.Number
+                                in customModule["avaliableDataTypes"]
+                            ):
+                                module_result = customModule["function"](passarg)
+                            elif (self.datalist[varname]["type"] == "linkcell") and (
+                                TrawpawDatatypes.LinkCell
+                                in customModule["avaliableDataTypes"]
+                            ):
+                                module_result = customModule["function"](
+                                    TrawpawLinkCell(passarg)
+                                )
+                            else:
+                                return TrawpawResult(
+                                    {
+                                        "status": 1,
+                                        "message": f"ERR: Invalid data type at col {col}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                )
+
+                            try:
+                                match customModule["handleResult"]:
+                                    case TrawpawHandleModuleResult.assignToVar:
+                                        if isinstance(module_result, str):
+                                            self.datalist[varname]["value"] = (
+                                                module_result
+                                            )
+                                            self.datalist[varname]["type"] = "string"
+                                        elif isinstance(module_result, int):
+                                            self.datalist[varname]["value"] = (
+                                                module_result % self.maxvaluepercell
+                                            )
+                                            self.datalist[varname]["type"] = "number"
+                                        elif isinstance(module_result, TrawpawFunction):
+                                            self.datalist[varname]["value"] = (
+                                                module_result.value
+                                            )
+                                            self.datalist[varname]["type"] = "function"
+                                        elif isinstance(module_result, TrawpawLinkCell):
+                                            if module_result.value < len(self.cells):
+                                                self.datalist[varname]["value"] = (
+                                                    module_result.value
+                                                )
+                                                self.datalist[varname]["type"] = (
+                                                    "linkcell"
+                                                )
+                                            else:
+                                                return TrawpawResult(
+                                                    {
+                                                        "status": 1,
+                                                        "message": f"ERR: Custom module '{dofunction}' returned an invalid address that is out of length of cells at col {col}",
+                                                        "cursor": self.cursor,
+                                                        "datalistlength": len(
+                                                            self.datalist
+                                                        ),
+                                                    }
+                                                )
+                                        else:
+                                            return TrawpawResult(
+                                                {
+                                                    "status": 1,
+                                                    "message": f"ERR: Invalid return type of the custom module '{dofunction}' at col {col}",
+                                                    "cursor": self.cursor,
+                                                    "datalistlength": len(
+                                                        self.datalist
+                                                    ),
+                                                }
+                                            )
+                                    case TrawpawHandleModuleResult.storeToCurrCell:
+                                        if isinstance(module_result, int):
+                                            self.cells[self.cursor] = (
+                                                module_result % self.maxvaluepercell
+                                            )
+                                        else:
+                                            return TrawpawResult(
+                                                {
+                                                    "status": 1,
+                                                    "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
+                                                    "cursor": self.cursor,
+                                                    "datalistlength": len(
+                                                        self.datalist
+                                                    ),
+                                                }
+                                            )
+                                    case TrawpawHandleModuleResult.printManually:
+                                        if isinstance(module_result, (str, int)):
+                                            if (
+                                                executionMethod
+                                                == TrawpawExecutionMethod.printManually
+                                            ):
+                                                print(str(module_result), end="")
+                                                sys.stdout.flush()
+                                            result += str(module_result)
+                                        else:
+                                            return TrawpawResult(
+                                                {
+                                                    "status": 1,
+                                                    "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
+                                                    "cursor": self.cursor,
+                                                    "datalistlength": len(
+                                                        self.datalist
+                                                    ),
+                                                }
+                                            )
+                                    case _:
+                                        return TrawpawResult(
+                                            {
+                                                "status": 1,
+                                                "message": f"ERR: Invalid handleResult setting of the custom module '{dofunction}' at col {col}",
+                                                "cursor": self.cursor,
+                                                "datalistlength": len(self.datalist),
+                                            }
+                                        )
+
+                                self.datalist[varname]["value"] = module_result
+                            except Exception as e:
+                                return TrawpawResult(
+                                    {
+                                        "status": 1,
+                                        "message": f"ERR: Custom module '{dofunction}' execution failed: {type(e).__name__}: {e} at col {col}",
+                                        "cursor": self.cursor,
+                                        "datalistlength": len(self.datalist),
+                                    }
+                                )
+                        else:
+                            return TrawpawResult(
+                                {
+                                    "status": 1,
+                                    "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
+                                    "cursor": self.cursor,
+                                    "datalistlength": len(self.datalist),
+                                }
+                            )
+                    elif dofunction == "runbf":
                         col += 1
                         name = code[col - startAtCol]
                         try:
@@ -1981,160 +2148,6 @@ class Trawpaw:
                                     {
                                         "status": 1,
                                         "message": f"ERR: Variable must be a string at col {col}",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
-                                )
-                        else:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
-                            )
-                    elif dofunction in self.customModules.keys():
-                        customModule = self.customModules[dofunction]
-                        col += 1
-                        varname = code[col - startAtCol]
-                        if self.datalist.get(varname):
-                            passarg = self.datalist[varname]["value"]
-
-                            if (self.datalist[varname]["type"] == "string") and (
-                                TrawpawDatatypes.String
-                                in customModule["avaliableDataTypes"]
-                            ):
-                                module_result = customModule["function"](passarg)
-                            elif (self.datalist[varname]["type"] == "function") and (
-                                TrawpawDatatypes.Function
-                                in customModule["avaliableDataTypes"]
-                            ):
-                                module_result = customModule["function"](
-                                    TrawpawFunction(passarg)
-                                )
-                            elif (self.datalist[varname]["type"] == "number") and (
-                                TrawpawDatatypes.Number
-                                in customModule["avaliableDataTypes"]
-                            ):
-                                module_result = customModule["function"](passarg)
-                            elif (self.datalist[varname]["type"] == "linkcell") and (
-                                TrawpawDatatypes.LinkCell
-                                in customModule["avaliableDataTypes"]
-                            ):
-                                module_result = customModule["function"](
-                                    TrawpawLinkCell(passarg)
-                                )
-                            else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Invalid data type at col {col}",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
-                                )
-
-                            try:
-                                match customModule["handleResult"]:
-                                    case TrawpawHandleModuleResult.assignToVar:
-                                        if isinstance(module_result, str):
-                                            self.datalist[varname]["value"] = (
-                                                module_result
-                                            )
-                                            self.datalist[varname]["type"] = "string"
-                                        elif isinstance(module_result, int):
-                                            self.datalist[varname]["value"] = (
-                                                module_result % self.maxvaluepercell
-                                            )
-                                            self.datalist[varname]["type"] = "number"
-                                        elif isinstance(module_result, TrawpawFunction):
-                                            self.datalist[varname]["value"] = (
-                                                module_result.value
-                                            )
-                                            self.datalist[varname]["type"] = "function"
-                                        elif isinstance(module_result, TrawpawLinkCell):
-                                            if module_result.value < len(self.cells):
-                                                self.datalist[varname]["value"] = (
-                                                    module_result.value
-                                                )
-                                                self.datalist[varname]["type"] = (
-                                                    "linkcell"
-                                                )
-                                            else:
-                                                return TrawpawResult(
-                                                    {
-                                                        "status": 1,
-                                                        "message": f"ERR: Custom module '{dofunction}' returned an invalid address that is out of length of cells at col {col}",
-                                                        "cursor": self.cursor,
-                                                        "datalistlength": len(
-                                                            self.datalist
-                                                        ),
-                                                    }
-                                                )
-                                        else:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: Invalid return type of the custom module '{dofunction}' at col {col}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            )
-                                    case TrawpawHandleModuleResult.storeToCurrCell:
-                                        if isinstance(module_result, int):
-                                            self.cells[self.cursor] = (
-                                                module_result % self.maxvaluepercell
-                                            )
-                                        else:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            )
-                                    case TrawpawHandleModuleResult.printManually:
-                                        if isinstance(module_result, (str, int)):
-                                            if (
-                                                executionMethod
-                                                == TrawpawExecutionMethod.printManually
-                                            ):
-                                                print(str(module_result), end="")
-                                                sys.stdout.flush()
-                                            result += str(module_result)
-                                        else:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
-                                            )
-                                    case _:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Invalid handleResult setting of the custom module '{dofunction}' at col {col}",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
-                                        )
-
-                                self.datalist[varname]["value"] = module_result
-                            except Exception as e:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Custom module '{dofunction}' execution failed: {type(e).__name__}: {e} at col {col}",
                                         "cursor": self.cursor,
                                         "datalistlength": len(self.datalist),
                                     }

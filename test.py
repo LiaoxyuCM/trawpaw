@@ -15,5 +15,10 @@ def handle_rand(limit: int) -> int:
     return random.randint(0, limit)
 
 
+executor.unregisterCustomModule("random")
+
+
 code = "+++++$ai$aw!$random$a"
 result = executor.execute(code)
+
+print(result.message)

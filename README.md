@@ -6,7 +6,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 7.0
+Version: 7.0_1
 
 #### Use our cli
 
@@ -171,6 +171,7 @@ Here is an example of how to register a custom module:
 ```py
 @trawpaw_executor.registerCustomModule(
     # param name: str: The name of this module.
+    # ---- Note: DO NOT contain "$" in the name.
     name="module name",
     # param avaliableDatatypes: trawpaw.TrawpawDatatypes:
     # ---- The datatypes that this module can handle.
@@ -186,14 +187,17 @@ def foo(arg: str | int) -> str: # Your module should receive (only) one argument
     return f"Your input is {arg}"
 ```
 
+If the newly registered module has the same name as an existing module,
+the newly module will override the existing module.
+
 #### Datatypes table
 
-| datatypes in trawpaw |  python class (original) | in enum (flag) TrawpawDatatypes |
-| -------------------- | ------------------------ | ------------------------------- |
-| "string"             | str                      | TrawpawDatatypes.String         |
-| "number"             | int                      | TrawpawDatatypes.Number         |
-| "function"           | TrawpawFunction          | TrawpawDatatypes.Function       |
-| "linkcell"           | TrawpawLinkCell          | TrawpawDatatypes.LinkCell       |
+| datatypes in trawpaw |  python class    | enum (flag) TrawpawDatatypes |
+| -------------------- | ---------------- | ---------------------------- |
+| "string"             | str              | TrawpawDatatypes.String      |
+| "number"             | int              | TrawpawDatatypes.Number      |
+| "function"           | TrawpawFunction  | TrawpawDatatypes.Function    |
+| "linkcell"           | TrawpawLinkCell  | TrawpawDatatypes.LinkCell    |
 
 Notice: Before v7.0, "linkcell" is called "linkmemory".
 
@@ -219,6 +223,16 @@ Use `TrawpawHandleModuleResult` to handle the result of your custom module.
 | assignToVar     | Store the result in the argument of your module            |
 | storeToCurrCell | Store the result in the current cell of Trawpaw (int only) |
 | printManually   | Print the result manually (default)(str \| int only)       |
+
+#### Unregister your custom module
+
+```py
+executor.unregisterCustomModule("module name")
+```
+
+Yes, the `unregisterCustomModule` is not a decorator.
+
+But before 7.0_1, please use `del executor.customModules["module name"]` instead.
 
 #### Something about TrawpawFunction and TrawpawLinkCell
 
