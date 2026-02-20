@@ -6,7 +6,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 7.1
+Version: 7.2
 
 #### Use our cli
 
@@ -27,6 +27,11 @@ trawpaw filepath # To execute this file
 
 After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address
 of this pointer is 0 and `v:0` means there are 0 variables defined.
+
+This REPL will generate file `.tphistories` since v7.2,
+if you want to clear your REPL history \(since v7.2\), just delete the file
+
+If you do not want to generate that file, just use `--nohistories`.
 
 #### Execute in-python-program
 

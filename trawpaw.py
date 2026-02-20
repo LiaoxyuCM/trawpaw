@@ -1,4 +1,4 @@
-"""
+r"""
 REQUIREMENT:
 
 Python 3.10+
@@ -152,13 +152,19 @@ ADDITIONAL NOTES:
 4. Debug syntax: "@[debug mark]"
 5. clearData=True in execute() resets cells and datalist to initial state
 6. Variable in module calling must syntaxed "$[name]" (no controller)
-
+7. In string definition, "\" is an escape char since 7.2,
+    \e        :End-char (Note: if you type an end-char manually, trawpaw will think the content of string is end)
+    \t        :Tab
+    \n        :New line
+    \r        :Enter
+    \\        :Backslash
 """
 
 from random import randint
 from time import sleep
 from prompt_toolkit import prompt
 from typing import Callable
+import colorama
 import sys
 import os
 import enum
@@ -166,7 +172,12 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "7.1"
+VERSION: str = "7.2"
+
+############# COLORAMA INIT #############
+
+colorama.init(convert=True)
+Fore = colorama.Fore
 
 ############# THE BEGINNING OF THE SOURCE #############
 
@@ -245,6 +256,16 @@ class Trawpaw:
         self.cursor: int = 0
 
         self.customModules: dict = {}
+
+    def buildException(self, msg: str) -> TrawpawResult:
+        return TrawpawResult(
+            {
+                "status": 1,
+                "message": f"{Fore.RED}ERR: {msg}{Fore.RESET}",
+                "cursor": self.cursor,
+                "datalistlength": len(self.datalist),
+            }
+        )
 
     def clearData(self):
         self.cells = self.nullmem.copy()
@@ -328,14 +349,7 @@ class Trawpaw:
                         bracketlist.pop()
             col += 1
         if len(bracketlist) != 0:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Bracket is not closed at col {col}.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Bracket is not closed at col {col}.")
         return TrawpawResult(
             {
                 "status": 0,
@@ -352,35 +366,38 @@ class Trawpaw:
             }
         ]
 
-        while bracketStack:
-            match code[col - startAtCol]:
-                case "[" | "(" | "{":
-                    bracketStack.append({"type": code[col - startAtCol]})
-                case "}":
-                    if bracketStack:
-                        if bracketStack[-1]["type"] == "{":
-                            bracketStack.pop()
+        try:
+            while bracketStack:
+                match code[col - startAtCol]:
+                    case "[" | "(" | "{":
+                        bracketStack.append({"type": code[col - startAtCol]})
+                    case "}":
+                        if bracketStack:
+                            if bracketStack[-1]["type"] == "{":
+                                bracketStack.pop()
+                            else:
+                                return {"status": 1, "col": col}
                         else:
                             return {"status": 1, "col": col}
-                    else:
-                        return {"status": 1, "col": col}
-                case "]":
-                    if bracketStack:
-                        if bracketStack[-1]["type"] == "[":
-                            bracketStack.pop()
+                    case "]":
+                        if bracketStack:
+                            if bracketStack[-1]["type"] == "[":
+                                bracketStack.pop()
+                            else:
+                                return {"status": 1, "col": col}
                         else:
                             return {"status": 1, "col": col}
-                    else:
-                        return {"status": 1, "col": col}
-                case ")":
-                    if bracketStack:
-                        if bracketStack[-1]["type"] == "(":
-                            bracketStack.pop()
+                    case ")":
+                        if bracketStack:
+                            if bracketStack[-1]["type"] == "(":
+                                bracketStack.pop()
+                            else:
+                                return {"status": 1, "col": col}
                         else:
                             return {"status": 1, "col": col}
-                    else:
-                        return {"status": 1, "col": col}
-            col += 1
+                col += 1
+        except IndexError:
+            return {"status": 1, "col": col - 1}
 
         return {"status": 0, "col": col}
 
@@ -392,13 +409,8 @@ class Trawpaw:
         executionMethod: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
     ) -> TrawpawResult:
         if len(self.cells) < 10:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": "ERR: To run waste (professional) code, at least 10 cells is required, please change your settings",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
+            return self.buildException(
+                "To run waste (professional) code, at least 10 cells is required, please change your settings",
             )
         saved: int = 0
         self.cursor = 0
@@ -406,23 +418,9 @@ class Trawpaw:
             if self.datalist[saveto]["type"] == "number":
                 saved = self.datalist[saveto]["value"]
             else:
-                return TrawpawResult(
-                    {
-                        "status": 1,
-                        "message": f"ERR: Data '{saveto}' is not a number.",
-                        "cursor": self.cursor,
-                        "datalistlength": len(self.datalist),
-                    }
-                )
+                return self.buildException(f"Data '{saveto}' is not a number.")
         except KeyError:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Data '{saveto}' is not initialized.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Data '{saveto}' is not initialized.")
         out: str = ""
         bracketStack = []
         col: int = startAtCol
@@ -503,13 +501,8 @@ class Trawpaw:
                     bracketStack.append({"type": "]", "position": col, "currranges": 0})
                 case "］" | "]":
                     if not bracketStack or bracketStack[-1]["type"] != "]":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         if bracketStack[-1]["currranges"] > 0:
@@ -522,68 +515,38 @@ class Trawpaw:
                     if randint(0, 1) == 0:
                         skip_rs = self.skipInside(code, "(", col + 1, 0)
                         if skip_rs["status"] == 1:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"Bracket is not properly closed at col {skip_rs['col']}"
                             )
                         else:
                             col = skip_rs["col"] - 1
                 case "）" | ")":
                     if not bracketStack:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     elif bracketStack[-1]["type"] != ")":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         bracketStack.pop()
                 case "｛" | "{":
                     skip_rs = self.skipInside(code, "{", col + 1, 0)
                     if skip_rs["status"] == 1:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Bracket is not properly closed at col {skip_rs['col']}"
                         )
                     else:
                         col = skip_rs["col"] - 1
                 case "｝" | "}":
                     if not bracketStack:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     elif bracketStack[-1]["type"] != "}":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         bracketStack.pop()
@@ -602,14 +565,7 @@ class Trawpaw:
                 }
             )
         except KeyError:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Data '{saveto}' is not initialized.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Data '{saveto}' is not initialized.")
 
     def runWastePreview(
         self,
@@ -627,23 +583,9 @@ class Trawpaw:
             if self.datalist[saveto]["type"] == "number":
                 saved = self.datalist[saveto]["value"]
             else:
-                return TrawpawResult(
-                    {
-                        "status": 1,
-                        "message": f"ERR: Data '{saveto}' is not a number.",
-                        "cursor": self.cursor,
-                        "datalistlength": len(self.datalist),
-                    }
-                )
+                return self.buildException(f"Data '{saveto}' is not a number.")
         except KeyError:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Data '{saveto}' is not initialized.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Data '{saveto}' is not initialized.")
         out: str = ""
         bracketStack = []
         col: int = startAtCol
@@ -713,13 +655,8 @@ class Trawpaw:
                     bracketStack.append({"type": "]", "position": col, "currranges": 0})
                 case "］" | "]":
                     if not bracketStack or bracketStack[-1]["type"] != "]":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         if bracketStack[-1]["currranges"] > 0:
@@ -732,68 +669,38 @@ class Trawpaw:
                     if randint(0, 1) == 0:
                         skip_rs = self.skipInside(code, "(", col + 1, 0)
                         if skip_rs["status"] == 1:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"Bracket is not properly closed at col {skip_rs['col']}"
                             )
                         else:
                             col = skip_rs["col"] - 1
                 case "）" | ")":
                     if not bracketStack:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     elif bracketStack[-1]["type"] != ")":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         bracketStack.pop()
                 case "｛" | "{":
                     skip_rs = self.skipInside(code, "{", col + 1, 0)
                     if skip_rs["status"] == 1:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Bracket is not properly closed at col {skip_rs['col']}"
                         )
                     else:
                         col = skip_rs["col"] - 1
                 case "｝" | "}":
                     if not bracketStack:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     elif bracketStack[-1]["type"] != "}":
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"Unmatched closing bracket at position {col}",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Unmatched closing bracket at position {col}"
                         )
                     else:
                         bracketStack.pop()
@@ -813,14 +720,7 @@ class Trawpaw:
                 }
             )
         except KeyError:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Data '{saveto}' is not initialized.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Data '{saveto}' is not initialized.")
 
     def execute(
         self,
@@ -956,25 +856,15 @@ class Trawpaw:
                                 sys.stdout.flush()
                             result += str(bracketlist)
                         else:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": "ERR: Invalid debug mark",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
-                            )
+                            return self.buildException("Invalid debug mark")
                         special = 0
                     case "[":
                         if bool(special):
                             if not randint(0, 1):
                                 skip_rs = self.skipInside(code, "[", col + 1, 0)
                                 if skip_rs["status"] == 1:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                        }
+                                    return self.buildException(
+                                        f"Bracket is not properly closed at col {skip_rs['col']}"
                                     )
                                 else:
                                     col = skip_rs["col"] - 1
@@ -997,13 +887,8 @@ class Trawpaw:
                             if self.cells[self.cursor] != 0:
                                 skip_rs = self.skipInside(code, "(", col + 1, 0)
                                 if skip_rs["status"] == 1:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Bracket is not properly closed at col {skip_rs['col']}"
                                     )
                                 else:
                                     col = skip_rs["col"] - 1
@@ -1018,13 +903,8 @@ class Trawpaw:
                             if self.cells[self.cursor] == 0:
                                 skip_rs = self.skipInside(code, "(", col + 1, 0)
                                 if skip_rs["status"] == 1:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Bracket is not properly closed at col {skip_rs['col']}"
                                     )
                                 else:
                                     col = skip_rs["col"] - 1
@@ -1041,34 +921,19 @@ class Trawpaw:
                             if bracketlist[-1]["bracket"] == "(":
                                 bracketlist.pop()
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: This bracket is not properly opened at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"This bracket is not properly opened at col {col}."
                                 )
                         else:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: This bracket is not properly opened at col {col}.",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"This bracket is not properly opened at col {col}."
                             )
                         special = 0
                     case "{":
                         skip_rs = self.skipInside(code, "{", col + 1, 0)
                         if skip_rs["status"] == 1:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: Bracket is not properly closed at col {skip_rs['col']}",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"Bracket is not properly closed at col {skip_rs['col']}"
                             )
                         else:
                             col = skip_rs["col"] - 1
@@ -1078,42 +943,22 @@ class Trawpaw:
                             if bracketlist[-1]["bracket"] == "{":
                                 bracketlist.pop()
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: This bracket is not properly opened at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"This bracket is not properly opened at col {col}."
                                 )
                         else:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: This bracket is not properly opened at col {col}.",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"This bracket is not properly opened at col {col}."
                             )
                         special = 0
                     case "]":
                         if not bracketlist:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: This bracket is not properly opened at col {col}.",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"This bracket is not properly opened at col {col}."
                             )
                         elif bracketlist[-1]["bracket"] != "[":
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: This bracket is not properly closed at col {col}.",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
+                            return self.buildException(
+                                f"This bracket is not properly closed at col {col}."
                             )
                         elif not bracketlist[-1]["special"]:
                             if bracketlist[-1]["ranges"] == 0:
@@ -1169,13 +1014,8 @@ class Trawpaw:
                                         TrawpawLinkCell(passarg)
                                     )
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Invalid data type at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Invalid data type at col {col}"
                                     )
 
                                 try:
@@ -1217,26 +1057,12 @@ class Trawpaw:
                                                         "linkcell"
                                                     )
                                                 else:
-                                                    return TrawpawResult(
-                                                        {
-                                                            "status": 1,
-                                                            "message": f"ERR: Custom module '{dofunction}' returned an invalid address that is out of length of cells at col {col}",
-                                                            "cursor": self.cursor,
-                                                            "datalistlength": len(
-                                                                self.datalist
-                                                            ),
-                                                        }
+                                                    return self.buildException(
+                                                        f"Custom module '{dofunction}' returned an invalid address that is out of length of cells at col {col}"
                                                     )
                                             else:
-                                                return TrawpawResult(
-                                                    {
-                                                        "status": 1,
-                                                        "message": f"ERR: Invalid return type of the custom module '{dofunction}' at col {col}",
-                                                        "cursor": self.cursor,
-                                                        "datalistlength": len(
-                                                            self.datalist
-                                                        ),
-                                                    }
+                                                return self.buildException(
+                                                    f"Invalid return type of the custom module '{dofunction}' at col {col}"
                                                 )
                                         case TrawpawHandleModuleResult.storeToCurrCell:
                                             if isinstance(module_result, int):
@@ -1244,15 +1070,8 @@ class Trawpaw:
                                                     module_result % self.maxvaluepercell
                                                 )
                                             else:
-                                                return TrawpawResult(
-                                                    {
-                                                        "status": 1,
-                                                        "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
-                                                        "cursor": self.cursor,
-                                                        "datalistlength": len(
-                                                            self.datalist
-                                                        ),
-                                                    }
+                                                return self.buildException(
+                                                    f"Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}"
                                                 )
                                         case TrawpawHandleModuleResult.printManually:
                                             if isinstance(module_result, (str, int)):
@@ -1264,46 +1083,22 @@ class Trawpaw:
                                                     sys.stdout.flush()
                                                 result += str(module_result)
                                             else:
-                                                return TrawpawResult(
-                                                    {
-                                                        "status": 1,
-                                                        "message": f"ERR: Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}",
-                                                        "cursor": self.cursor,
-                                                        "datalistlength": len(
-                                                            self.datalist
-                                                        ),
-                                                    }
+                                                return self.buildException(
+                                                    f"Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}"
                                                 )
                                         case _:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: Invalid handleResult setting of the custom module '{dofunction}' at col {col}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                f"Invalid handleResult setting of the custom module '{dofunction}' at col {col}"
                                             )
 
                                     self.datalist[varname]["value"] = module_result
                                 except Exception as e:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Custom module '{dofunction}' execution failed: {type(e).__name__}: {e} at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Custom module '{dofunction}' execution failed: {type(e).__name__}: {e} at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "runbf":
                             col += 1
@@ -1316,46 +1111,26 @@ class Trawpaw:
                                         executionMethod=executionMethod,
                                     )
                                     if function_result.status == 1:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": function_result.message,
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            function_result.message
                                         )
                                     else:
                                         result += function_result.result
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a function at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a function at col {col}"
                                     )
                             except KeyError:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
                                 )
                         elif dofunction == "runwaste":
                             col += 1
                             name = code[col - startAtCol]
                             col += 1
                             if code[col - startAtCol] != "$":
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Invalid waste module call syntax at col {col}",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Invalid waste module call syntax at col {col}"
                                 )
                             else:
                                 col += 1
@@ -1371,48 +1146,26 @@ class Trawpaw:
                                             executionMethod=executionMethod,
                                         )
                                         if function_result.status == 1:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": function_result.message,
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                function_result.message
                                             )
                                         else:
                                             result += function_result.result
                                     else:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Variable must be a function at col {col}",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            f"Variable must be a function at col {col}"
                                         )
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: (One of) arguments is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"(One of) arguments is not initialized at col {col}."
                                     )
                         elif dofunction == "runwaste.preview":
                             col += 1
                             name = code[col - startAtCol]
                             col += 1
                             if code[col - startAtCol] != "$":
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Invalid waste module call syntax at col {col}",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Invalid waste module call syntax at col {col}"
                                 )
                             else:
                                 col += 1
@@ -1428,35 +1181,18 @@ class Trawpaw:
                                             executionMethod=executionMethod,
                                         )
                                         if function_result.status == 1:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": function_result.message,
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                function_result.message
                                             )
                                         else:
                                             result += function_result.result
                                     else:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Variable must be a function at col {col}",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            f"Variable must be a function at col {col}"
                                         )
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: (One of) arguments is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"(One of) arguments is not initialized at col {col}."
                                     )
                         elif dofunction == "include":
                             col += 1
@@ -1475,45 +1211,23 @@ class Trawpaw:
                                             include_code, startAtCol=0
                                         )
                                         if function_result.status == 1:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": function_result.message
-                                                    + f" in file {self.datalist[varname]['value']}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                function_result.message
+                                                + f" in file {self.datalist[varname]['value']}"
                                             )
                                         else:
                                             result += function_result.result
                                     except FileNotFoundError:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Included file {self.datalist[varname]['value']} not found at col {col}.",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            f"Included file {self.datalist[varname]['value']} not found at col {col}."
                                         )
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "virtual":
                             col += 1
@@ -1539,27 +1253,15 @@ class Trawpaw:
                                             )
                                         )
                                         if function_result.status == 1:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": function_result.message
-                                                    + f" in file {self.datalist[varname]['value']}",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                function_result.message
+                                                + f" in file {self.datalist[varname]['value']}"
                                             )
                                         # else:
                                         #     result += function_result.result
                                     except FileNotFoundError:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Included file '{self.datalist[varname]['value']}' not found at col {col}.",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            f"Included file '{self.datalist[varname]['value']}' not found at col {col}."
                                         )
                                 elif self.datalist[varname]["type"] == "function":
                                     include_code = self.datalist[varname]["value"]
@@ -1569,33 +1271,18 @@ class Trawpaw:
                                         executionMethod=executionMethod,
                                     )
                                     if function_result.status == 1:
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": function_result.message,
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            function_result.message
                                         )
                                     else:
                                         result += function_result.result
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string or a function at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string or a function at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "print":
                             col += 1
@@ -1610,61 +1297,36 @@ class Trawpaw:
                                         sys.stdout.flush()
                                     result += self.datalist[varname]["value"]
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "getinput":
                             col += 1
                             hint = code[col - startAtCol]
                             col += 1
                             if code[col - startAtCol] != "$":
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Invalid waste module call syntax at col {col}",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Invalid waste module call syntax at col {col}"
                                 )
                             else:
                                 col += 1
                                 storeto = code[col - startAtCol]
                                 try:
                                     if self.datalist[hint]["type"] != "string":
-                                        return TrawpawResult(
-                                            {
-                                                "status": 1,
-                                                "message": f"ERR: Hint must be a string at col {col}",
-                                                "cursor": self.cursor,
-                                                "datalistlength": len(self.datalist),
-                                            }
+                                        return self.buildException(
+                                            f"Hint must be a string at col {col}"
                                         )
 
                                     inp_result = input(self.datalist[hint]["value"])
                                     self.datalist[storeto]["type"] = "string"
                                     self.datalist[storeto]["value"] = inp_result
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: (One of) arguments is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"(One of) arguments is not initialized at col {col}."
                                     )
                         elif dofunction == "string.addto":
                             col += 1
@@ -1675,22 +1337,12 @@ class Trawpaw:
                                         self.cells[self.cursor]
                                     )
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.inserttofirst":
                             col += 1
@@ -1707,22 +1359,12 @@ class Trawpaw:
                                         varname
                                     ]["value"][::-1]
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
 
                         elif dofunction == "string.length":
@@ -1735,22 +1377,12 @@ class Trawpaw:
                                         string_length % self.maxvaluepercell
                                     )
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.reverse":
                             col += 1
@@ -1760,22 +1392,12 @@ class Trawpaw:
                                     new_string = self.datalist[varname]["value"][::-1]
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.toupper":
                             col += 1
@@ -1785,22 +1407,12 @@ class Trawpaw:
                                     new_string = self.datalist[varname]["value"].upper()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.tolower":
                             col += 1
@@ -1810,22 +1422,12 @@ class Trawpaw:
                                     new_string = self.datalist[varname]["value"].lower()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.encodeuri":
                             col += 1
@@ -1837,22 +1439,12 @@ class Trawpaw:
                                     )
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.decodeuri":
                             col += 1
@@ -1864,22 +1456,12 @@ class Trawpaw:
                                     )
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.escape":
                             escape = {
@@ -1901,22 +1483,12 @@ class Trawpaw:
                                         new_string = new_string.replace(k, v)
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.unescape":
                             escape = {
@@ -1938,22 +1510,12 @@ class Trawpaw:
                                         new_string = new_string.replace(v, k)
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.md5":
                             col += 1
@@ -1965,22 +1527,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.sha1":
                             col += 1
@@ -1992,22 +1544,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.sha224":
                             col += 1
@@ -2019,22 +1561,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.sha256":
                             col += 1
@@ -2046,22 +1578,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.sha384":
                             col += 1
@@ -2073,22 +1595,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "hash.sha512":
                             col += 1
@@ -2100,22 +1612,12 @@ class Trawpaw:
                                     ).hexdigest()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "base64.encode":
                             col += 1
@@ -2127,22 +1629,12 @@ class Trawpaw:
                                     ).decode()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "base64.decode":
                             col += 1
@@ -2154,22 +1646,12 @@ class Trawpaw:
                                     ).decode()
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.offset.forward":
                             col += 1
@@ -2181,13 +1663,8 @@ class Trawpaw:
                                         new_string += chr(ord(char) - 1)
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                         elif dofunction == "string.offset.backward":
                             col += 1
@@ -2199,22 +1676,12 @@ class Trawpaw:
                                         new_string += chr(ord(char) + 1)
                                     self.datalist[varname]["value"] = new_string
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a string at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "number.plusby":
                             col += 1
@@ -2227,22 +1694,12 @@ class Trawpaw:
                                     )
                                     self.cells[self.cursor] = rs % self.maxvaluepercell
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a number at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a number at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "number.subtractby":
                             col += 1
@@ -2255,22 +1712,12 @@ class Trawpaw:
                                     )
                                     self.cells[self.cursor] = rs % self.maxvaluepercell
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a number at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a number at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "number.timesby":
                             col += 1
@@ -2283,22 +1730,12 @@ class Trawpaw:
                                     )
                                     self.cells[self.cursor] = rs % self.maxvaluepercell
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a number at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a number at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "number.divideby":
                             col += 1
@@ -2311,22 +1748,12 @@ class Trawpaw:
                                     )
                                     self.cells[self.cursor] = rs % self.maxvaluepercell
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a number at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a number at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "number.powerby":
                             col += 1
@@ -2339,41 +1766,19 @@ class Trawpaw:
                                     )
                                     self.cells[self.cursor] = rs % self.maxvaluepercell
                                 else:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Variable must be a number at col {col}",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Variable must be a number at col {col}"
                                     )
                             else:
-                                return TrawpawResult(
-                                    {
-                                        "status": 1,
-                                        "message": f"ERR: Data '{varname}' is not initialized at col {col}.",
-                                        "cursor": self.cursor,
-                                        "datalistlength": len(self.datalist),
-                                    }
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
                                 )
                         else:
-                            return TrawpawResult(
-                                {
-                                    "status": 1,
-                                    "message": f"ERR: Unknown module at col {col}",
-                                    "cursor": self.cursor,
-                                    "datalistlength": len(self.datalist),
-                                }
-                            )
+                            return self.buildException(f"Unknown module at col {col}")
                         special = 0
                     except IndexError:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": "ERR: Module name reached the end of the code",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            "ERR: Module name reached the end of the code"
                         )
                 else:
                     # Define a single-character data constant, the next character is the data controller I means init and reset W means write R means read
@@ -2381,13 +1786,8 @@ class Trawpaw:
                     col += 1
                     controller: str = code[col - startAtCol]
                     if controller.upper() not in ["I", "W", "R", "L", "D", "F", "S"]:
-                        return TrawpawResult(
-                            {
-                                "status": 1,
-                                "message": f"ERR: Invalid data controller at col {col}.",
-                                "cursor": self.cursor,
-                                "datalistlength": len(self.datalist),
-                            }
+                        return self.buildException(
+                            f"Invalid data controller at col {col}."
                         )
                     else:
                         match controller.upper():
@@ -2400,13 +1800,8 @@ class Trawpaw:
                                         self.cursor
                                     ]
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
                             case "R":
                                 try:
@@ -2427,52 +1822,30 @@ class Trawpaw:
                                             executionMethod=executionMethod,
                                         )
                                         if function_result.status == 1:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": function_result.message,
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                function_result.message
                                             )
                                         else:
                                             result += function_result.result
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
                             case "L":
                                 try:
                                     self.datalist[name]["type"] = "linkcell"
                                     self.datalist[name]["value"] = self.cursor
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
                             case "D":
                                 # delete data
                                 try:
                                     del self.datalist[name]
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
                             case "F":
                                 try:
@@ -2490,26 +1863,14 @@ class Trawpaw:
                                             else:
                                                 function_body += code[col - startAtCol]
                                         except IndexError:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: The function definition is not properly closed at col {col}.",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                f"The function definition is not properly closed at col {col}."
                                             )
                                     self.datalist[name]["type"] = "function"
                                     self.datalist[name]["value"] = function_body
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
                             case "S":
                                 try:
@@ -2524,43 +1885,64 @@ class Trawpaw:
                                             if code[col - startAtCol] == end_char:
                                                 break
                                             else:
-                                                string_body += code[col - startAtCol]
+                                                if code[col - startAtCol] == "\\":
+                                                    col += 1
+                                                    match code[col - startAtCol]:
+                                                        case "e":
+                                                            string_body += end_char
+                                                        case "n":
+                                                            string_body += "\n"
+                                                        case "t":
+                                                            string_body += "\t"
+                                                        case "r":
+                                                            string_body += "\r"
+                                                        case "\\":
+                                                            string_body += "\\"
+                                                        case _:
+                                                            if (
+                                                                prompt(
+                                                                    f"WARN: Do not use escape char '\\' in string definition at col {col}.\nSuggestion: use '\\\\' instead\nContinue? [yN] "
+                                                                ).lower()
+                                                                != "y"
+                                                            ):
+                                                                return TrawpawResult(
+                                                                    {
+                                                                        "status": 2,
+                                                                        "result": result,
+                                                                        "cursor": self.cursor,
+                                                                        "datalistlength": len(
+                                                                            self.datalist
+                                                                        ),
+                                                                    }
+                                                                )
+                                                            else:
+                                                                string_body += (
+                                                                    "\\"
+                                                                    + code[
+                                                                        col - startAtCol
+                                                                    ]
+                                                                )
+                                                else:
+                                                    string_body += code[
+                                                        col - startAtCol
+                                                    ]
 
                                         except IndexError:
-                                            return TrawpawResult(
-                                                {
-                                                    "status": 1,
-                                                    "message": f"ERR: The function definition is not properly closed at col {col}.",
-                                                    "cursor": self.cursor,
-                                                    "datalistlength": len(
-                                                        self.datalist
-                                                    ),
-                                                }
+                                            return self.buildException(
+                                                f"The function definition is not properly closed at col {col}."
                                             )
                                     self.datalist[name]["type"] = "string"
                                     self.datalist[name]["value"] = string_body
                                 except KeyError:
-                                    return TrawpawResult(
-                                        {
-                                            "status": 1,
-                                            "message": f"ERR: Data '{name}' is not initialized at col {col}.",
-                                            "cursor": self.cursor,
-                                            "datalistlength": len(self.datalist),
-                                        }
+                                    return self.buildException(
+                                        f"Data '{name}' is not initialized at col {col}."
                                     )
 
                 data_definition = False
                 # col += 1
             col += 1
         if bracketlist:
-            return TrawpawResult(
-                {
-                    "status": 1,
-                    "message": f"ERR: Bracket is not closed at col {col}.",
-                    "cursor": self.cursor,
-                    "datalistlength": len(self.datalist),
-                }
-            )
+            return self.buildException(f"Bracket is not closed at col {col}.")
         if clearData:
             self.clearData()
         return TrawpawResult(
@@ -2576,6 +1958,7 @@ class Trawpaw:
 def main():
     try:
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
+        from prompt_toolkit.history import FileHistory
 
         parser = ArgumentParser(
             usage="trawpaw [options] <file>",
@@ -2622,6 +2005,12 @@ def main():
         running_method.add_argument(
             "--brainfuck", "-bf", action="store_true", help="Run Brainfuck code"
         )
+        running_method.add_argument(
+            "--nohistories",
+            "-nh",
+            action="store_true",
+            help="Tell REPL do not use histories",
+        )
 
         args: Namespace = parser.parse_args()
         trawpaw_executor: Trawpaw
@@ -2653,15 +2042,20 @@ def main():
                 f.close()
             sys.exit(0)
         else:
+            if args.nohistories:
+                histories = None
+            else:
+                histories = FileHistory(".tphistories")
+
             print("Run `trawpaw --usage` for more information")
             print("Press Ctrl+C to exit.")
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                code = prompt("[waste] ")
+                code = prompt("[waste] ", history=histories)
             elif args.brainfuck:
-                code = prompt("[bf c:0] ")
+                code = prompt("[bf c:0] ", history=histories)
             else:
-                code = prompt("[c:0 v:0] ")
+                code = prompt("[c:0 v:0] ", history=histories)
             while True:
                 if args.waste_preview:
                     trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
@@ -2677,12 +2071,13 @@ def main():
                 # else:
                 #     print(getattr(trawpaw_result, "result", ""))
                 if args.waste_preview or args.waste:
-                    code = prompt("[waste] ")
+                    code = prompt("[waste] ", history=histories)
                 elif args.brainfuck:
-                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ")
+                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=histories)
                 else:
                     code = prompt(
-                        f"[c:{trawpaw_result.cursor} v:{trawpaw_result.datalistlength}] "
+                        f"[c:{trawpaw_result.cursor} v:{trawpaw_result.datalistlength}] ",
+                        history=histories,
                     )
     except KeyboardInterrupt:
         sys.exit(0)
