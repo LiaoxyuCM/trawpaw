@@ -1,7 +1,7 @@
 from trawpaw import (
     Trawpaw,
-    TrawpawDatatypes,
-    TrawpawHandleModuleResult,
+    Tdt,
+    Thmr,
 )
 import urllib.parse
 import base64
@@ -14,8 +14,8 @@ executor = Trawpaw()
 
 @executor.registerCustomModule(
     name="print",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.printManually,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.printManually,
 )
 def handle_print(arg: str):
     return arg
@@ -26,8 +26,8 @@ def handle_print(arg: str):
 
 @executor.registerCustomModule(
     name="string.addto",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_addto(arg: str):
     return arg + chr(executor.cells[executor.cursor])
@@ -38,8 +38,8 @@ def handle_string_addto(arg: str):
 
 @executor.registerCustomModule(
     name="string.inserttofirst",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_inserttofirst(arg: str):
     return chr(executor.cells[executor.cursor]) + arg
@@ -50,8 +50,8 @@ def handle_string_inserttofirst(arg: str):
 
 @executor.registerCustomModule(
     name="string.length",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_string_length(arg: str):
     return len(arg)
@@ -62,8 +62,8 @@ def handle_string_length(arg: str):
 
 @executor.registerCustomModule(
     name="string.reverse",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_reverse(arg: str):
     return arg[::-1]
@@ -74,8 +74,8 @@ def handle_string_reverse(arg: str):
 
 @executor.registerCustomModule(
     name="string.toupper",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_toupper(arg: str):
     return arg.upper()
@@ -86,8 +86,8 @@ def handle_string_toupper(arg: str):
 
 @executor.registerCustomModule(
     name="string.tolower",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_tolower(arg: str):
     return arg.lower()
@@ -98,8 +98,8 @@ def handle_string_tolower(arg: str):
 
 @executor.registerCustomModule(
     name="string.encodeuri",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_encodeuri(arg: str):
     return urllib.parse.quote(arg)
@@ -110,8 +110,8 @@ def handle_string_encodeuri(arg: str):
 
 @executor.registerCustomModule(
     name="string.decodeuri",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_decodeuri(arg: str):
     return urllib.parse.unquote(arg)
@@ -135,8 +135,8 @@ escape = {
 
 @executor.registerCustomModule(
     name="string.escape",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_escape(arg: str):
     for char, esc in escape.items():
@@ -149,8 +149,8 @@ def handle_string_escape(arg: str):
 
 @executor.registerCustomModule(
     name="string.unescape",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_unescape(arg: str):
     for char, esc in list(escape.items())[::-1]:
@@ -163,8 +163,8 @@ def handle_string_unescape(arg: str):
 
 @executor.registerCustomModule(
     name="hash.md5",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_md5(arg: str):
     return hashlib.md5(arg.encode()).hexdigest()
@@ -175,8 +175,8 @@ def handle_hash_md5(arg: str):
 
 @executor.registerCustomModule(
     name="hash.sha1",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_sha1(arg: str):
     return hashlib.sha1(arg.encode()).hexdigest()
@@ -187,8 +187,8 @@ def handle_hash_sha1(arg: str):
 
 @executor.registerCustomModule(
     name="hash.sha224",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_sha224(arg: str):
     return hashlib.sha224(arg.encode()).hexdigest()
@@ -199,8 +199,8 @@ def handle_hash_sha224(arg: str):
 
 @executor.registerCustomModule(
     name="hash.sha256",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_sha256(arg: str):
     return hashlib.sha256(arg.encode()).hexdigest()
@@ -211,8 +211,8 @@ def handle_hash_sha256(arg: str):
 
 @executor.registerCustomModule(
     name="hash.sha384",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_sha384(arg: str):
     return hashlib.sha384(arg.encode()).hexdigest()
@@ -223,8 +223,8 @@ def handle_hash_sha384(arg: str):
 
 @executor.registerCustomModule(
     name="hash.sha512",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_hash_sha512(arg: str):
     return hashlib.sha512(arg.encode()).hexdigest()
@@ -235,8 +235,8 @@ def handle_hash_sha512(arg: str):
 
 @executor.registerCustomModule(
     name="base64.encode",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_base64_encode(arg: str):
     return base64.b64encode(arg.encode()).decode()
@@ -247,8 +247,8 @@ def handle_base64_encode(arg: str):
 
 @executor.registerCustomModule(
     name="base64.decode",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_base64_decode(arg: str):
     return base64.b64decode(arg.encode()).decode()
@@ -259,8 +259,8 @@ def handle_base64_decode(arg: str):
 
 @executor.registerCustomModule(
     name="string.offset.forward",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_offset_forward(arg: str):
     new_string = ""
@@ -274,8 +274,8 @@ def handle_string_offset_forward(arg: str):
 
 @executor.registerCustomModule(
     name="string.offset.backward",
-    avaliableDatatypes=TrawpawDatatypes.String,
-    handleResult=TrawpawHandleModuleResult.assignToVar,
+    availableDatatypes=Tdt.String,
+    handleResult=Thmr.assignToVar,
 )
 def handle_string_offset_backward(arg: str):
     new_string = ""
@@ -289,8 +289,8 @@ def handle_string_offset_backward(arg: str):
 
 @executor.registerCustomModule(
     name="number.plusby",
-    avaliableDatatypes=TrawpawDatatypes.Number,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.Number,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_number_plusby(arg: int):
     return executor.cells[executor.cursor] + arg
@@ -301,8 +301,8 @@ def handle_number_plusby(arg: int):
 
 @executor.registerCustomModule(
     name="number.subtractby",
-    avaliableDatatypes=TrawpawDatatypes.Number,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.Number,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_number_subtractby(arg: int):
     return executor.cells[executor.cursor] - arg
@@ -313,8 +313,8 @@ def handle_number_subtractby(arg: int):
 
 @executor.registerCustomModule(
     name="number.timesby",
-    avaliableDatatypes=TrawpawDatatypes.Number,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.Number,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_number_timesby(arg: int):
     return executor.cells[executor.cursor] * arg
@@ -325,8 +325,8 @@ def handle_number_timesby(arg: int):
 
 @executor.registerCustomModule(
     name="number.divideby",
-    avaliableDatatypes=TrawpawDatatypes.Number,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.Number,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_number_divideby(arg: int):
     return executor.cells[executor.cursor] // arg
@@ -337,8 +337,8 @@ def handle_number_divideby(arg: int):
 
 @executor.registerCustomModule(
     name="number.powerby",
-    avaliableDatatypes=TrawpawDatatypes.Number,
-    handleResult=TrawpawHandleModuleResult.storeToCurrCell,
+    availableDatatypes=Tdt.Number,
+    handleResult=Thmr.storeToCurrCell,
 )
 def handle_number_powerby(arg: int):
     return executor.cells[executor.cursor] ** arg

@@ -172,14 +172,14 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "7.2"
+VERSION: str = "7.3"
 
-############# COLORAMA INIT #############
+############# INIT #############
 
 colorama.init(convert=True)
 Fore = colorama.Fore
 
-############# THE BEGINNING OF THE SOURCE #############
+############# MAIN #############
 
 
 class TrawpawExecutionMethod(enum.Enum):
@@ -230,6 +230,18 @@ class TrawpawLinkCell:
         return str(self.value)
 
 
+# aliases
+
+Tem = TrawpawExecutionMethod
+Thmr = TrawpawHandleModuleResult
+Tdt = TrawpawDatatypes
+Trst = TrawpawResult
+Tfun = TrawpawFunction
+Tlc = TrawpawLinkCell
+
+# main
+
+
 class Trawpaw:
     def __init__(
         self,
@@ -275,14 +287,14 @@ class Trawpaw:
     def registerCustomModule(
         self,
         name: str,
-        avaliableDatatypes: TrawpawDatatypes,
+        availableDatatypes: TrawpawDatatypes,
         handleResult: TrawpawHandleModuleResult = TrawpawHandleModuleResult.printManually,
     ):
         def decorator(func: Callable):
             self.customModules[name] = {
                 "handleResult": handleResult,
                 "function": func,
-                "avaliableDataTypes": avaliableDatatypes,
+                "availableDataTypes": availableDatatypes,
             }
 
         if "$" in name:
@@ -987,28 +999,28 @@ class Trawpaw:
 
                                 if (self.datalist[varname]["type"] == "string") and (
                                     TrawpawDatatypes.String
-                                    in customModule["avaliableDataTypes"]
+                                    in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](passarg)
                                 elif (
                                     self.datalist[varname]["type"] == "function"
                                 ) and (
                                     TrawpawDatatypes.Function
-                                    in customModule["avaliableDataTypes"]
+                                    in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](
                                         TrawpawFunction(passarg)
                                     )
                                 elif (self.datalist[varname]["type"] == "number") and (
                                     TrawpawDatatypes.Number
-                                    in customModule["avaliableDataTypes"]
+                                    in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](passarg)
                                 elif (
                                     self.datalist[varname]["type"] == "linkcell"
                                 ) and (
                                     TrawpawDatatypes.LinkCell
-                                    in customModule["avaliableDataTypes"]
+                                    in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](
                                         TrawpawLinkCell(passarg)
