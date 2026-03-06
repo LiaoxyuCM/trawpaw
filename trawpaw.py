@@ -32,6 +32,7 @@ L            :VarController    :Link variable to current cursor position (used a
 D            :VarController    :Delete variable (used after $[name])
 F            :VarController    :Define a function (used after $[name])
 S            :VarController    :Define a string variable (used after $[name])
+=            :VarController    :Copy b's value and datatype into a (syntax `$a=$b`)
 
 V            :DebugMark        :Show current list of variables
 C            :DebugMark        :Show current address of cursor
@@ -59,6 +60,12 @@ print        :Module           :Print a string variable
 
 getinput     :Module           :Get user input and store it in a string variable
 | Syntax: `!$getinput[hint: variable<string>][result_storeto: variable<any>]`
+
+tostring     :Module           :Convert variable to string
+| Syntax: `!$print[value: variable<function|number>]`
+
+tofunction   :Module           :Convert variable to function
+| Syntax: `!$print[value: variable<string>]`
 
 string
     addto      :Module           :Add this cell's value to a string variable as a character (appending)
@@ -172,7 +179,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "7.3"
+VERSION: str = "7.4"
 
 ############# INIT #############
 
@@ -1785,6 +1792,42 @@ class Trawpaw:
                                 return self.buildException(
                                     f"Data '{varname}' is not initialized at col {col}."
                                 )
+                        elif dofunction == "tostring":
+                            col += 1
+                            varname = code[col - startAtCol]
+                            if self.datalist.get(varname):
+                                if self.datalist[varname]["type"] in [
+                                    "function",
+                                    "number",
+                                ]:
+                                    self.datalist[varname]["type"] = "string"
+                                    self.datalist[varname]["value"] = str(
+                                        self.datalist[varname]["value"]
+                                    )
+                                    del self.datalist[varname]["startAtCol"]
+                                else:
+                                    return self.buildException(
+                                        f"Variable must be a number or function at col {col}"
+                                    )
+                            else:
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
+                                )
+                        elif dofunction == "tofunction":
+                            col += 1
+                            varname = code[col - startAtCol]
+                            if self.datalist.get(varname):
+                                if self.datalist[varname]["type"] == "string":
+                                    self.datalist[varname]["type"] = "function"
+                                    self.datalist[varname]["startAtCol"] = col + 1
+                                else:
+                                    return self.buildException(
+                                        f"Variable must be a string at col {col}"
+                                    )
+                            else:
+                                return self.buildException(
+                                    f"Data '{varname}' is not initialized at col {col}."
+                                )
                         else:
                             return self.buildException(f"Unknown module at col {col}")
                         special = 0
@@ -1797,158 +1840,176 @@ class Trawpaw:
                     name: str = code[col - startAtCol]
                     col += 1
                     controller: str = code[col - startAtCol]
-                    if controller.upper() not in ["I", "W", "R", "L", "D", "F", "S"]:
-                        return self.buildException(
-                            f"Invalid data controller at col {col}."
-                        )
-                    else:
-                        match controller.upper():
-                            case "I":
-                                self.datalist[name] = {"type": "number", "value": 0}
-                            case "W":
-                                try:
-                                    self.datalist[name]["type"] = "number"
-                                    self.datalist[name]["value"] = self.cells[
-                                        self.cursor
+
+                    match controller.upper():
+                        case "I":
+                            self.datalist[name] = {"type": "number", "value": 0}
+                        case "W":
+                            try:
+                                self.datalist[name]["type"] = "number"
+                                self.datalist[name]["value"] = self.cells[self.cursor]
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "R":
+                            try:
+                                if self.datalist[name]["type"] == "number":
+                                    self.cells[self.cursor] = self.datalist[name][
+                                        "value"
                                     ]
-                                except KeyError:
-                                    return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
+                                elif self.datalist[name]["type"] == "linkcell":
+                                    self.cells[self.cursor] = self.cells[
+                                        self.datalist[name]["value"]
+                                    ]
+                                elif self.datalist[name]["type"] == "function":
+                                    function_result = self.execute(
+                                        self.datalist[name]["value"],
+                                        startAtCol=self.datalist[name]["startAtCol"],
+                                        executionMethod=executionMethod,
                                     )
-                            case "R":
-                                try:
-                                    if self.datalist[name]["type"] == "number":
-                                        self.cells[self.cursor] = self.datalist[name][
-                                            "value"
-                                        ]
-                                    elif self.datalist[name]["type"] == "linkcell":
-                                        self.cells[self.cursor] = self.cells[
-                                            self.datalist[name]["value"]
-                                        ]
-                                    elif self.datalist[name]["type"] == "function":
-                                        function_result = self.execute(
-                                            self.datalist[name]["value"],
-                                            startAtCol=self.datalist[name][
-                                                "startAtCol"
-                                            ],
-                                            executionMethod=executionMethod,
+                                    if function_result.status == 1:
+                                        return self.buildException(
+                                            function_result.message
                                         )
-                                        if function_result.status == 1:
-                                            return self.buildException(
-                                                function_result.message
-                                            )
+                                    else:
+                                        result += function_result.result
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "L":
+                            try:
+                                self.datalist[name]["type"] = "linkcell"
+                                self.datalist[name]["value"] = self.cursor
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "D":
+                            # delete data
+                            try:
+                                del self.datalist[name]
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "F":
+                            try:
+                                col += 1
+
+                                # next, we receive a character.
+                                end_char = code[col - startAtCol]
+                                function_body = ""
+                                self.datalist[name]["startAtCol"] = col + 1
+                                while True:
+                                    try:
+                                        col += 1
+                                        if code[col - startAtCol] == end_char:
+                                            break
                                         else:
-                                            result += function_result.result
-                                except KeyError:
-                                    return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
-                                    )
-                            case "L":
-                                try:
-                                    self.datalist[name]["type"] = "linkcell"
-                                    self.datalist[name]["value"] = self.cursor
-                                except KeyError:
-                                    return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
-                                    )
-                            case "D":
-                                # delete data
-                                try:
-                                    del self.datalist[name]
-                                except KeyError:
-                                    return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
-                                    )
-                            case "F":
+                                            function_body += code[col - startAtCol]
+                                    except IndexError:
+                                        return self.buildException(
+                                            f"The function definition is not properly closed at col {col}."
+                                        )
+                                self.datalist[name]["type"] = "function"
+                                self.datalist[name]["value"] = function_body
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "S":
+                            try:
+                                col += 1
+
+                                # next, we receive a character.
+                                end_char = code[col - startAtCol]
+                                string_body = ""
+                                while True:
+                                    try:
+                                        col += 1
+                                        if code[col - startAtCol] == end_char:
+                                            break
+                                        else:
+                                            if code[col - startAtCol] == "\\":
+                                                col += 1
+                                                match code[col - startAtCol]:
+                                                    case "e":
+                                                        string_body += end_char
+                                                    case "n":
+                                                        string_body += "\n"
+                                                    case "t":
+                                                        string_body += "\t"
+                                                    case "r":
+                                                        string_body += "\r"
+                                                    case "\\":
+                                                        string_body += "\\"
+                                                    case _:
+                                                        if (
+                                                            prompt(
+                                                                f"WARN: Do not use escape char '\\' in string definition at col {col}.\nSuggestion: use '\\\\' instead\nContinue? [yN] "
+                                                            ).lower()
+                                                            != "y"
+                                                        ):
+                                                            return TrawpawResult(
+                                                                {
+                                                                    "status": 2,
+                                                                    "result": result,
+                                                                    "cursor": self.cursor,
+                                                                    "datalistlength": len(
+                                                                        self.datalist
+                                                                    ),
+                                                                }
+                                                            )
+                                                        else:
+                                                            string_body += (
+                                                                "\\"
+                                                                + code[col - startAtCol]
+                                                            )
+                                            else:
+                                                string_body += code[col - startAtCol]
+
+                                    except IndexError:
+                                        return self.buildException(
+                                            f"The function definition is not properly closed at col {col}."
+                                        )
+                                self.datalist[name]["type"] = "string"
+                                self.datalist[name]["value"] = string_body
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case "=":
+                            try:
                                 try:
                                     col += 1
-
-                                    # next, we receive a character.
-                                    end_char = code[col - startAtCol]
-                                    function_body = ""
-                                    self.datalist[name]["startAtCol"] = col + 1
-                                    while True:
+                                    if code[col - startAtCol] == "$":
+                                        col += 1
                                         try:
-                                            col += 1
-                                            if code[col - startAtCol] == end_char:
-                                                break
-                                            else:
-                                                function_body += code[col - startAtCol]
-                                        except IndexError:
+                                            self.datalist[name] = self.datalist[
+                                                code[col - startAtCol]
+                                            ].copy()
+                                        except KeyError:
                                             return self.buildException(
-                                                f"The function definition is not properly closed at col {col}."
+                                                f"Data '{code[col - startAtCol]}' is not initialized at col {col}."
                                             )
-                                    self.datalist[name]["type"] = "function"
-                                    self.datalist[name]["value"] = function_body
-                                except KeyError:
+                                    else:
+                                        return self.buildException(
+                                            'Follow "$" after controller "="'
+                                        )
+                                except IndexError:
                                     return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
+                                        'Follow "$" after controller "=", not null'
                                     )
-                            case "S":
-                                try:
-                                    col += 1
-
-                                    # next, we receive a character.
-                                    end_char = code[col - startAtCol]
-                                    string_body = ""
-                                    while True:
-                                        try:
-                                            col += 1
-                                            if code[col - startAtCol] == end_char:
-                                                break
-                                            else:
-                                                if code[col - startAtCol] == "\\":
-                                                    col += 1
-                                                    match code[col - startAtCol]:
-                                                        case "e":
-                                                            string_body += end_char
-                                                        case "n":
-                                                            string_body += "\n"
-                                                        case "t":
-                                                            string_body += "\t"
-                                                        case "r":
-                                                            string_body += "\r"
-                                                        case "\\":
-                                                            string_body += "\\"
-                                                        case _:
-                                                            if (
-                                                                prompt(
-                                                                    f"WARN: Do not use escape char '\\' in string definition at col {col}.\nSuggestion: use '\\\\' instead\nContinue? [yN] "
-                                                                ).lower()
-                                                                != "y"
-                                                            ):
-                                                                return TrawpawResult(
-                                                                    {
-                                                                        "status": 2,
-                                                                        "result": result,
-                                                                        "cursor": self.cursor,
-                                                                        "datalistlength": len(
-                                                                            self.datalist
-                                                                        ),
-                                                                    }
-                                                                )
-                                                            else:
-                                                                string_body += (
-                                                                    "\\"
-                                                                    + code[
-                                                                        col - startAtCol
-                                                                    ]
-                                                                )
-                                                else:
-                                                    string_body += code[
-                                                        col - startAtCol
-                                                    ]
-
-                                        except IndexError:
-                                            return self.buildException(
-                                                f"The function definition is not properly closed at col {col}."
-                                            )
-                                    self.datalist[name]["type"] = "string"
-                                    self.datalist[name]["value"] = string_body
-                                except KeyError:
-                                    return self.buildException(
-                                        f"Data '{name}' is not initialized at col {col}."
-                                    )
+                            except KeyError:
+                                return self.buildException(
+                                    f"Data '{name}' is not initialized at col {col}."
+                                )
+                        case _:
+                            return self.buildException(
+                                f"Invalid data controller at col {col}."
+                            )
 
                 data_definition = False
                 # col += 1
@@ -1971,6 +2032,7 @@ def main():
     try:
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
         from prompt_toolkit.history import FileHistory
+        import pydoc
 
         parser = ArgumentParser(
             usage="trawpaw [options] <file>",
@@ -2033,7 +2095,7 @@ def main():
             sys.exit(1)
 
         if args.usage:
-            print(__doc__)
+            pydoc.pager(__doc__)  # type: ignore
             sys.exit(0)
         elif args.file:
             with open(args.file, "r", encoding="utf-8") as f:
@@ -2060,7 +2122,7 @@ def main():
                 histories = FileHistory(".tphistories")
 
             print("Run `trawpaw --usage` for more information")
-            print("Press Ctrl+C to exit.")
+            print("Press Ctrl+C or Ctrl+D to exit.")
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
                 code = prompt("[waste] ", history=histories)
@@ -2092,6 +2154,8 @@ def main():
                         history=histories,
                     )
     except KeyboardInterrupt:
+        sys.exit(0)
+    except EOFError:
         sys.exit(0)
 
 
