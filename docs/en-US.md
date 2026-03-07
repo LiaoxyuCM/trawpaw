@@ -6,7 +6,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 7.4.1
+Version: 7.4.2
 
 #### Use our cli
 

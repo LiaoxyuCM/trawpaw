@@ -1,7 +1,7 @@
 r"""
 REQUIREMENT:
 
-Python 3.10+
+Python 3.10+ (If execute in-python-program)
 
 ------------------------------
 Code         :Type             :Usage
@@ -179,7 +179,7 @@ import urllib.parse
 import hashlib
 import base64
 
-VERSION: str = "7.4"
+VERSION: str = "7.4.2"
 
 ############# INIT #############
 
@@ -271,13 +271,13 @@ class Trawpaw:
 
         self.maxvaluepercell = maxvaluepercell + 1
 
-        self.datalist = {}
+        self.datalist: dict = {}
         self.cursor: int = 0
 
         self.customModules: dict = {}
 
-    def buildException(self, msg: str) -> TrawpawResult:
-        return TrawpawResult(
+    def buildException(self, msg: str) -> Trst:
+        return Trst(
             {
                 "status": 1,
                 "message": f"{Fore.RED}ERR: {msg}{Fore.RESET}",
@@ -286,7 +286,7 @@ class Trawpaw:
             }
         )
 
-    def clearData(self):
+    def clearData(self) -> None:
         self.cells = self.nullmem.copy()
         self.datalist = {}
         self.cursor = 0
@@ -294,9 +294,9 @@ class Trawpaw:
     def registerCustomModule(
         self,
         name: str,
-        availableDatatypes: TrawpawDatatypes,
-        handleResult: TrawpawHandleModuleResult = TrawpawHandleModuleResult.printManually,
-    ):
+        availableDatatypes: Tdt,
+        handleResult: Thmr = Thmr.printManually,
+    ) -> Callable:
         def decorator(func: Callable):
             self.customModules[name] = {
                 "handleResult": handleResult,
@@ -309,7 +309,7 @@ class Trawpaw:
 
         return decorator
 
-    def unregisterCustomModule(self, name: str):
+    def unregisterCustomModule(self, name: str) -> None:
         try:
             del self.customModules[name]
         except KeyError:
@@ -320,8 +320,8 @@ class Trawpaw:
         code: str,
         getinput: str = "",
         startAtCol: int = 0,
-        executionMethod: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
-    ) -> TrawpawResult:
+        executionMethod: Tem = Tem.printManually,
+    ) -> Trst:
         inputcur: int = 0
         bracketlist: list[int] = []
         result: str = ""
@@ -355,7 +355,7 @@ class Trawpaw:
                         else:
                             self.cells[self.cursor] = 0
                 case ".":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print(chr(self.cells[self.cursor]), end="")
                         sys.stdout.flush()
                     result += chr(self.cells[self.cursor])
@@ -369,7 +369,7 @@ class Trawpaw:
             col += 1
         if len(bracketlist) != 0:
             return self.buildException(f"Bracket is not closed at col {col}.")
-        return TrawpawResult(
+        return Trst(
             {
                 "status": 0,
                 "result": result,
@@ -425,8 +425,8 @@ class Trawpaw:
         code: str,
         saveto: str,
         startAtCol: int = 0,
-        executionMethod: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
-    ) -> TrawpawResult:
+        executionMethod: Tem = Tem.printManually,
+    ) -> Trst:
         if len(self.cells) < 10:
             return self.buildException(
                 "To run waste (professional) code, at least 10 cells is required, please change your settings",
@@ -441,7 +441,7 @@ class Trawpaw:
         except KeyError:
             return self.buildException(f"Data '{saveto}' is not initialized.")
         out: str = ""
-        bracketStack = []
+        bracketStack: list = []
         col: int = startAtCol
         while col - startAtCol < len(code):
             match code[col - startAtCol]:
@@ -452,11 +452,11 @@ class Trawpaw:
                 case "＞" | ">":
                     self.cells[self.cursor] = saved
                 case "＠" | "@":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         os.system("cls" if os.name == "nt" else "clear")
                     out = ""
                 case "，" | ",":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print(code[col - startAtCol + 1 :], end="")
                         sys.stdout.flush()
                     out += code[col - startAtCol + 1 :]
@@ -480,12 +480,11 @@ class Trawpaw:
                         self.cells[self.cursor] // 2
                     ) % self.maxvaluepercell
                 case ";" | "；":
-                    if randint(0, 1):
-                        self.cells[self.cursor] = (
-                            self.cells[self.cursor] + 1
-                        ) % self.maxvaluepercell
+                    self.cells[self.cursor] = (
+                        self.cells[self.cursor] + randint(0, 1)
+                    ) % self.maxvaluepercell
                 case "％" | "%":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print(str(self.cells[self.cursor]), end="")
                         sys.stdout.flush()
                     out += str(self.cells[self.cursor])
@@ -493,22 +492,22 @@ class Trawpaw:
                     prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
-                        if executionMethod == TrawpawExecutionMethod.printManually:
+                        if executionMethod == Tem.printManually:
                             print(chr(self.cells[self.cursor]), end="")
                             sys.stdout.flush()
                         out += chr(self.cells[self.cursor])
                     except Exception:
-                        if executionMethod == TrawpawExecutionMethod.printManually:
+                        if executionMethod == Tem.printManually:
                             print("?", end="")
                             sys.stdout.flush()
                         out += "?"
                 case "：" | ":":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print("\n", end="")
                         sys.stdout.flush()
                     out += "\n"
                 case "！" | "!":
-                    return TrawpawResult(
+                    return Trst(
                         {
                             "status": 2,
                             "result": out,
@@ -575,7 +574,7 @@ class Trawpaw:
         try:
             self.datalist[saveto]["type"] = "number"
             self.datalist[saveto]["value"] = saved
-            return TrawpawResult(
+            return Trst(
                 {
                     "status": 0,
                     "result": out,
@@ -591,11 +590,8 @@ class Trawpaw:
         code: str,
         saveto: str,
         startAtCol: int = 0,
-        executionMethod: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
-    ) -> TrawpawResult:
-        """
-        Waste esolang executor, ported from JS, using match-case.
-        """
+        executionMethod: Tem = Tem.printManually,
+    ) -> Trst:
         saved: int = 0
         ptr: int = self.cells[self.cursor]
         try:
@@ -606,7 +602,7 @@ class Trawpaw:
         except KeyError:
             return self.buildException(f"Data '{saveto}' is not initialized.")
         out: str = ""
-        bracketStack = []
+        bracketStack: list = []
         col: int = startAtCol
         while col - startAtCol < len(code):
             match code[col - startAtCol]:
@@ -615,13 +611,13 @@ class Trawpaw:
                 case "＞" | ">":
                     ptr = saved
                 case "＾" | "^":
-                    ptr = 0 if randint(0, 1) == 0 else 1
+                    ptr = randint(0, 1)
                 case "＠" | "@":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         os.system("cls" if os.name == "nt" else "clear")
                     out = ""
                 case "，" | ",":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print(code[col - startAtCol + 1 :], end="")
                         sys.stdout.flush()
                     out += code[col - startAtCol + 1 :]
@@ -637,7 +633,7 @@ class Trawpaw:
                 case "/" | "／":
                     ptr = (ptr // 2) % self.maxvaluepercell
                 case "％" | "%":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print(str(ptr), end="")
                         sys.stdout.flush()
                     out += str(ptr)
@@ -645,24 +641,24 @@ class Trawpaw:
                     prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
-                        if executionMethod == TrawpawExecutionMethod.printManually:
+                        if executionMethod == Tem.printManually:
                             print(chr(ptr), end="")
                             sys.stdout.flush()
                         out += chr(ptr)
                     except Exception:
-                        if executionMethod == TrawpawExecutionMethod.printManually:
+                        if executionMethod == Tem.printManually:
                             print("?", end="")
                             sys.stdout.flush()
                         out += "?"
                 case "：" | ":":
-                    if executionMethod == TrawpawExecutionMethod.printManually:
+                    if executionMethod == Tem.printManually:
                         print("\n", end="")
                         sys.stdout.flush()
                     out += "\n"
                 case "？" | "?":
                     sleep(0.001)
                 case "！" | "!":
-                    return TrawpawResult(
+                    return Trst(
                         {
                             "status": 2,
                             "result": out,
@@ -730,7 +726,7 @@ class Trawpaw:
             self.cells[self.cursor] = ptr
             self.datalist[saveto]["type"] = "number"
             self.datalist[saveto]["value"] = saved
-            return TrawpawResult(
+            return Trst(
                 {
                     "status": 0,
                     "result": out,
@@ -747,8 +743,8 @@ class Trawpaw:
         getinput: str = "",
         clearData: bool = False,
         startAtCol: int = 0,
-        executionMethod: TrawpawExecutionMethod = TrawpawExecutionMethod.printManually,
-    ) -> TrawpawResult:
+        executionMethod: Tem = Tem.printManually,
+    ) -> Trst:
         inputcur: int = 0
         bracketlist: list[dict] = []
         result: str = ""
@@ -809,12 +805,12 @@ class Trawpaw:
                         special = 0
                     case ".":
                         if special:
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(str(self.cells[self.cursor]), end="")
                                 sys.stdout.flush()  # How can I describe your IO buffer
                             result += str(self.cells[self.cursor])
                         else:
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(chr(self.cells[self.cursor]), end="")
                                 sys.stdout.flush()
                             result += chr(self.cells[self.cursor])
@@ -830,7 +826,7 @@ class Trawpaw:
                     case "&":
                         # Breakpoint for debugging
                         if special:
-                            return TrawpawResult(
+                            return Trst(
                                 {
                                     "status": 2,
                                     "result": result,
@@ -846,17 +842,17 @@ class Trawpaw:
                     case "@":
                         col += 1
                         if code[col - startAtCol].upper() == "V":
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(str(self.datalist), end="")
                                 sys.stdout.flush()
                             result += str(self.datalist)
                         elif code[col - startAtCol].upper() == "C":
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(str(self.cursor), end="")
                                 sys.stdout.flush()
                             result += str(self.cursor)
                         elif code[col - startAtCol].upper() == "M":
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(
                                     str(len(self.cells))
                                     + " "
@@ -870,7 +866,7 @@ class Trawpaw:
                                 + str(self.maxvaluepercell - 1)
                             )
                         elif code[col - startAtCol].upper() == "B":
-                            if executionMethod == TrawpawExecutionMethod.printManually:
+                            if executionMethod == Tem.printManually:
                                 print(str(bracketlist), end="")
                                 sys.stdout.flush()
                             result += str(bracketlist)
@@ -1005,32 +1001,28 @@ class Trawpaw:
                                 passarg = self.datalist[varname]["value"]
 
                                 if (self.datalist[varname]["type"] == "string") and (
-                                    TrawpawDatatypes.String
-                                    in customModule["availableDataTypes"]
+                                    Tdt.String in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](passarg)
                                 elif (
                                     self.datalist[varname]["type"] == "function"
                                 ) and (
-                                    TrawpawDatatypes.Function
-                                    in customModule["availableDataTypes"]
+                                    Tdt.Function in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](
-                                        TrawpawFunction(passarg)
+                                        Tfun(passarg)
                                     )
                                 elif (self.datalist[varname]["type"] == "number") and (
-                                    TrawpawDatatypes.Number
-                                    in customModule["availableDataTypes"]
+                                    Tdt.Number in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](passarg)
                                 elif (
                                     self.datalist[varname]["type"] == "linkcell"
                                 ) and (
-                                    TrawpawDatatypes.LinkCell
-                                    in customModule["availableDataTypes"]
+                                    Tdt.LinkCell in customModule["availableDataTypes"]
                                 ):
                                     module_result = customModule["function"](
-                                        TrawpawLinkCell(passarg)
+                                        Tlc(passarg)
                                     )
                                 else:
                                     return self.buildException(
@@ -1039,7 +1031,7 @@ class Trawpaw:
 
                                 try:
                                     match customModule["handleResult"]:
-                                        case TrawpawHandleModuleResult.assignToVar:
+                                        case Thmr.assignToVar:
                                             if isinstance(module_result, str):
                                                 self.datalist[varname]["value"] = (
                                                     module_result
@@ -1054,9 +1046,7 @@ class Trawpaw:
                                                 self.datalist[varname]["type"] = (
                                                     "number"
                                                 )
-                                            elif isinstance(
-                                                module_result, TrawpawFunction
-                                            ):
+                                            elif isinstance(module_result, Tfun):
                                                 self.datalist[varname]["value"] = (
                                                     module_result.value
                                                 )
@@ -1066,9 +1056,7 @@ class Trawpaw:
                                                 self.datalist[varname]["startAtCol"] = (
                                                     col + 1
                                                 )
-                                            elif isinstance(
-                                                module_result, TrawpawLinkCell
-                                            ):
+                                            elif isinstance(module_result, Tlc):
                                                 if module_result.value < len(
                                                     self.cells
                                                 ):
@@ -1086,7 +1074,7 @@ class Trawpaw:
                                                 return self.buildException(
                                                     f"Invalid return type of the custom module '{dofunction}' at col {col}"
                                                 )
-                                        case TrawpawHandleModuleResult.storeToCurrCell:
+                                        case Thmr.storeToCurrCell:
                                             if isinstance(module_result, int):
                                                 self.cells[self.cursor] = (
                                                     module_result % self.maxvaluepercell
@@ -1095,12 +1083,9 @@ class Trawpaw:
                                                 return self.buildException(
                                                     f"Custom module '{dofunction}' must return an integer if the handleResult is set to storeToCurrCell at col {col}"
                                                 )
-                                        case TrawpawHandleModuleResult.printManually:
+                                        case Thmr.printManually:
                                             if isinstance(module_result, (str, int)):
-                                                if (
-                                                    executionMethod
-                                                    == TrawpawExecutionMethod.printManually
-                                                ):
+                                                if executionMethod == Tem.printManually:
                                                     print(str(module_result), end="")
                                                     sys.stdout.flush()
                                                 result += str(module_result)
@@ -1311,10 +1296,7 @@ class Trawpaw:
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
-                                    if (
-                                        executionMethod
-                                        == TrawpawExecutionMethod.printManually
-                                    ):
+                                    if executionMethod == Tem.printManually:
                                         print(self.datalist[varname]["value"], end="")
                                         sys.stdout.flush()
                                     result += self.datalist[varname]["value"]
@@ -1955,7 +1937,7 @@ class Trawpaw:
                                                             ).lower()
                                                             != "y"
                                                         ):
-                                                            return TrawpawResult(
+                                                            return Trst(
                                                                 {
                                                                     "status": 2,
                                                                     "result": result,
@@ -2021,7 +2003,7 @@ class Trawpaw:
             return self.buildException(f"Bracket is not closed at col {col}.")
         if clearData:
             self.clearData()
-        return TrawpawResult(
+        return Trst(
             {
                 "status": 0,
                 "result": result,
@@ -2134,10 +2116,18 @@ def main():
                 )
             else:
                 print("Run `trawpaw --usage` for more information")
-            print("Press Ctrl+C or Ctrl+D to exit.")
+
+            if sys.platform == "darwin":
+                print("Press Cmd+C or Cmd+D to exit.")
+            else:
+                print("Press Ctrl+C or Ctrl+D to exit.")
+
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                code = prompt("[waste] ", history=histories)
+                if args.waste:
+                    code = prompt("[waste c:0] ", history=histories)
+                else:
+                    code = prompt("[waste] ", history=histories)
             elif args.brainfuck:
                 code = prompt("[bf c:0] ", history=histories)
             else:
@@ -2156,7 +2146,9 @@ def main():
                     print(trawpaw_result.message)
                 # else:
                 #     print(getattr(trawpaw_result, "result", ""))
-                if args.waste_preview or args.waste:
+                if args.waste:
+                    code = prompt(f"[waste c:{trawpaw_executor.cursor}] ")
+                elif args.waste_preview:
                     code = prompt("[waste] ", history=histories)
                 elif args.brainfuck:
                     code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=histories)
