@@ -1,4 +1,5 @@
 from trawpaw import (
+    Tfun,
     Trawpaw,
     Tdt,
     Thmr,
@@ -156,6 +157,31 @@ def handle_string_unescape(arg: str):
     for char, esc in list(escape.items())[::-1]:
         arg = arg.replace(esc, char)
     return arg
+
+
+### TOSTRING ###
+
+
+@executor.registerCustomModule(
+    name="tostring",
+    availableDatatypes=Tdt.Number | Tdt.Function,
+    handleResult=Thmr.assignToVar,
+)
+def handle_tostring(arg: int | Tfun):
+    if isinstance(arg, int):
+        return str(arg)
+    elif isinstance(arg, Tfun):
+        return str(arg.value)
+
+
+### TOFUNCTION ###
+
+
+@executor.registerCustomModule(
+    name="tofunction", availableDatatypes=Tdt.String, handleResult=Thmr.assignToVar
+)
+def handle_tofunction(arg: str):
+    return Tfun(arg)
 
 
 ### HASH.MD5 ###

@@ -490,7 +490,7 @@ class Trawpaw:
                         sys.stdout.flush()
                     out += str(self.cells[self.cursor])
                 case "＆" | "&":
-                    prompt("breakpoint reached. Press Enter to continue...")
+                    prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
                         if executionMethod == TrawpawExecutionMethod.printManually:
@@ -1062,6 +1062,9 @@ class Trawpaw:
                                                 )
                                                 self.datalist[varname]["type"] = (
                                                     "function"
+                                                )
+                                                self.datalist[varname]["startAtCol"] = (
+                                                    col + 1
                                                 )
                                             elif isinstance(
                                                 module_result, TrawpawLinkCell
@@ -2036,7 +2039,7 @@ def main():
 
         parser = ArgumentParser(
             usage="trawpaw [options] <file>",
-            description="Trawpaw Interpreter v" + VERSION,
+            description="Trawpaw v" + VERSION,
             formatter_class=RawTextHelpFormatter,
         )
         running_method = parser.add_mutually_exclusive_group(required=False)
@@ -2121,7 +2124,16 @@ def main():
             else:
                 histories = FileHistory(".tphistories")
 
-            print("Run `trawpaw --usage` for more information")
+            if args.waste:
+                print(
+                    "View https://github.com/ChenQingMua/WasteLanguage-Professional for more information"
+                )
+            elif args.waste_preview:
+                print(
+                    "View https://github.com/ChenQingMua/WasteLanguage-Preview for more information"
+                )
+            else:
+                print("Run `trawpaw --usage` for more information")
             print("Press Ctrl+C or Ctrl+D to exit.")
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
