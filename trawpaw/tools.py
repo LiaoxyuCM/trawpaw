@@ -1,0 +1,141 @@
+import time
+import os
+import sys
+from typing import Literal
+
+
+def simplifyResultExpression(resultExpression: str) -> str:
+    return resultExpression.replace("w_" * 100, "w.").replace("w." * 10, "w1")
+
+
+def executeResultExpression(resultExpression: str) -> None:
+    col = 0
+
+    try:
+        while len(resultExpression) > col:
+            match resultExpression[col]:
+                case "d":
+                    col += 1
+                    print(resultExpression[col], end="")
+                case "c":
+                    os.system("cls" if os.name == "nt" else "clear")
+                case "w":
+                    col += 1
+                    if resultExpression[col] == "1":
+                        sys.stdout.flush()
+                        time.sleep(1)
+                    elif resultExpression[col] == ".":
+                        sys.stdout.flush()
+                        time.sleep(0.1)
+                    elif resultExpression[col] == "_":
+                        sys.stdout.flush()
+                        time.sleep(0.001)
+                    else:
+                        raise SyntaxError("Invalid result expression")
+
+            col += 1
+    except IndexError:
+        raise SyntaxError("Invalid result expression")
+
+    print()
+
+
+def compileResultExpression(
+    resultExpr: str,
+    targetLang: Literal["python"] | Literal["javascript"] = "python",
+    javascriptElemName: str = "default",
+) -> str:
+    col = 0
+    if targetLang == "python":
+        try:
+            out = ""
+            code = ""
+            while len(resultExpr) > col:
+                match resultExpr[col]:
+                    case "d":
+                        col += 1
+                        out += resultExpr[col]
+                    case "c":
+                        if out:
+                            code += f'print({repr(out)}, end="")\n'
+                            out = ""
+
+                        if "import os\n" not in code:
+                            code = "import os\n" + code
+
+                        code += 'os.system("cls" if os.name == "nt" else "clear")\n'
+                    case "w":
+                        if out:
+                            if "import sys\n" not in code:
+                                code = "import sys\n" + code
+                            code += f'print({repr(out)}, end="")\nsys.stdout.flush()\n'
+                            out = ""
+                        if "import time\n" not in code:
+                            code = "import time\n" + code
+
+                        col += 1
+                        if resultExpr[col] == "1":
+                            code += "time.sleep(1)\n"
+                        elif resultExpr[col] == ".":
+                            code += "time.sleep(.1)\n"
+                        elif resultExpr[col] == "_":
+                            code += "time.sleep(.001)\n"
+                        else:
+                            raise SyntaxError("Invalid result expression")
+                    case _:
+                        raise SyntaxError("Invalid result expression")
+                col += 1
+            if out:
+                code += f"print({repr(out)})\n"
+                out = ""
+            return code
+
+        except IndexError:
+            raise SyntaxError("Invalid result expression")
+
+    elif targetLang == "javascript":
+        try:
+            out = ""
+            code = ""
+            timeouts = []
+            while len(resultExpr) > col:
+                match resultExpr[col]:
+                    case "d":
+                        col += 1
+                        out += resultExpr[col]
+                    case "c":
+                        if out:
+                            code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                            out = ""
+                        code += (
+                            " " * len(timeouts) * 4
+                            + f'{javascriptElemName}.textContent = "";\n'
+                        )
+                    case "w":
+                        if out:
+                            code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                            out = ""
+                        col += 1
+                        code += " " * len(timeouts) * 4 + "setTimeout(function () {\n"
+                        if resultExpr[col] == "1":
+                            timeouts.append(1000)
+                        elif resultExpr[col] == ".":
+                            timeouts.append(100)
+                        elif resultExpr[col] == "_":
+                            timeouts.append(1)
+                        else:
+                            raise SyntaxError("Invalid result expression")
+                    case _:
+                        raise SyntaxError("Invalid result expression")
+                col += 1
+            if out:
+                code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                out = ""
+            if timeouts:
+                for i in timeouts.copy()[::-1]:
+                    timeouts.pop()
+                    code += " " * len(timeouts) * 4 + "}, " + str(i) + ");\n"
+            return code
+
+        except IndexError:
+            raise SyntaxError("Invalid result expression")

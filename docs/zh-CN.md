@@ -6,7 +6,7 @@
 
 ### Python
 
-版本: 7.4.2
+版本: 8.0
 
 #### 用我们的命令行
 
@@ -35,6 +35,9 @@ trawpaw filepath # 运行文件里面的代码
 
 #### 在你的python程序中执行
 
+注意: **除了`Trawpaw`这个类其他的都移到了`trawpaw.components`
+另外, `__doc__` 移至 `trawpaw.doc.DOCUMENT`, `VERSION` 移至 `trawpaw.doc.VERSION`**
+
 你得先克隆这个仓库+创建虚拟环境\(可选，但推荐\)+安装依赖.
 
 在你的终端运行以下命令:
@@ -47,7 +50,7 @@ trawpaw filepath # 运行文件里面的代码
 git clone https://github.com/LiaoxyuCM/trawpaw.git
 cd trawpaw
 ## 创建虚拟环境
-python -m venv pyenv # Or custom name of virtual env
+python -m venv pyenv # 或者你自己起个名字
 pyenv/Scripts/activate
 ## 安装依赖
 pip install --upgrade pip
@@ -77,30 +80,23 @@ result = executor.execute(
     
     startAtCol=0, # 永远不要传这个参数; 他只会在内部执行时要求传参.
 
-    # 参数名在v6.0及以后使用驼峰命名法
-    # 在v6.0之前, 他使用蛇形命名法.
     # 你可以使用下面的其中之一来传参:
     # - TrawpawExecutionMethod.printManually: 直接打印结果 (默认)
-    #                                         然后做 `~.storeInResult` (看后面)
-    # - TrawpawExecutionMethod.storeInResult: 将结果保存下来
+    # - TrawpawExecutionMethod.storeInResult: 以字符串形式将结果保存下来
     #                                         运行结束时返回结果
-    executionMethod=trawpaw.TrawpawExecutionMethod.printManually
-); # 在v6.0之前返回 “dict” , 在v6.0及以后返回 “TrawpawResult”
+    # - TrawpawExecutionMethod.storeInResultExpression: 以结果表达式（当然还是字符串）的形式将结果保存下来
+    #                                         运行结束时返回结果
+    executionMethod=trawpaw.components.Tem.printManually,
+
+    # 简单模式，默认值为False
+    # 这个模式启用之之后, Trawpaw将不支持
+    # - 导入文件
+    # - 获取输入
+    simpleMode=False
+);
 ```
 
 ##### 处理结果
-
-在 v6.0 之前
-
-```py
-if trawpaw_result["status"] == 1:
-  print(result.get("message", "ERR: 未知异常."))
-else:
-  print(result.get("result", ""))
-
-```
-
-在 v6.0 之后
 
 ```py
 if trawpaw_result.status == 1:
@@ -109,8 +105,7 @@ else:
   print(result.result)
 ```
 
-`Treapaw().execute()` 在v6.0之前返回一个字典
-但在v6.0及以后返回一个 `TrawpawResult` 对象
+`Treapaw().execute()` 返回一个 `TrawpawResult` 对象
 
 - status
 
@@ -158,13 +153,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ## Hello World 在 Trawpaw
 
-v4.5 之前
-
 ```trawpaw
 !##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
 ```
 
-v4.5 及以后
+或者更简短一点
 
 ```trawpaw
 !!#$ai$as"Hello, world!"!$print$a
@@ -181,15 +174,15 @@ v4.5 及以后
     # 参数 name: str: 这个功能的名称.
     # ---- 注意: 不要在名称里包含 "$"
     name="module name",
-    # 参数 availableDatatypes: trawpaw.TrawpawDatatypes:
+    # 参数 availableDatatypes: trawpaw.components.TrawpawDatatypes:
     # ---- 这个功能可以处理的数据类型.
     # ---- 注意: TrawpawDatatypes 是标志枚举, 你可以
     # ----     连接 多个数据类型 使用管道符 (|).
-    availableDatatypes=trawpaw.TrawpawDatatypes.String | trawpaw.TrawpawDatatypes.Number,
-    # param handleResult: trawpaw.TrawpawHandleModuleResult:
+    availableDatatypes=trawpaw.components.Tdt.String | trawpaw.components.Tdt.Number,
+    # param handleResult: trawpaw.components.TrawpawHandleModuleResult:
     # ---- 处理结果的方法.
     # ---- 默认值是 `TrawpawHandleModuleResult.printManually`
-    handleResult=trawpaw.TrawpawHandleModuleResult.printManually
+    handleResult=trawpaw.components.Thmr.printManually
 )
 def foo(arg: str | int) -> str: # 你的功能必需且只有一个参数要传
     return f"你输入的是 {arg}"
@@ -208,8 +201,6 @@ def foo(arg: str | int) -> str: # 你的功能必需且只有一个参数要传
 | "number"             | int              | TrawpawDatatypes.Number      |
 | "function"           | TrawpawFunction  | TrawpawDatatypes.Function    |
 | "linkcell"           | TrawpawLinkCell  | TrawpawDatatypes.LinkCell    |
-
-注意: 在 v7.0 之前, "linkcell" 叫 "linkmemory".
 
 - 我们会判断trawpaw该用的数据类型
   在你自定义功能的返回值的类型为基础.
@@ -242,8 +233,6 @@ executor.unregisterCustomModule("功能名称")
 
 是的，`unregisterCustomModule` 不是装饰器.
 
-但在 7.0_1 之前, 请使用 `del executor.customModules["module name"]`.
-
 #### TrawpawFunction 和 TrawpawLinkCell
 
 定义对象
@@ -258,6 +247,50 @@ TrawpawLinkCell(指针地址: int)
 ```py
 trawpaw_function.value # trawpaw_function 是 TrawpawFunction 的实例
 trawpaw_link_cell.value # trawpaw_link_cell 是 TrawpawLinkCell 的实例
+```
+
+### 处理结果表达式
+
+由于篇幅所限，我们不讲结果表达式的语法，只讲处理的方法
+
+```py
+from trawpaw import Trawpaw
+from trawpaw.components import Tem
+
+executor = Trawpaw()
+
+res = executor.execute(
+    "你的代码",
+    executionMethod=Tem.storeInResultExpression,
+)
+```
+
+此时 res.output就是一个结果表达式
+
+你可以用`trawpaw.tools`中的功能来处理他们
+
+```py
+from trawpaw.tools import \
+    simplifyResultExpression, executeResultExpression, \
+    compileResultExpression
+
+# 此处作用是简化结果表达式
+# resultExpression: 结果表达式
+simplifyResultExpression(resultExpression: str) -> str
+
+# 此处作用是执行结果表达式
+# resultExpression: 结果表达式
+executeResultExpression(resultExpression: str) -> None
+
+# 此处作用是转化结果表达式到其他语言
+# resultExpr: 结果表达式
+# targetLang: 目标语言，可以是py也可以是js(前端)，默认py
+# javascriptElemName: 当targetLang值为'javascript'，使用的变量名称
+compileResultExpression(
+    resultExpr: str,
+    targetLang: Literal["python"] | Literal["javascript"] = "python",
+    javascriptElemName: str = "default",
+) -> str
 ```
 
 ### 别名

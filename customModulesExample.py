@@ -1,9 +1,5 @@
-from trawpaw import (
-    Tfun,
-    Trawpaw,
-    Tdt,
-    Thmr,
-)
+from trawpaw import Trawpaw
+from trawpaw.components import Tdt, Thmr, Tfun
 import urllib.parse
 import base64
 import hashlib

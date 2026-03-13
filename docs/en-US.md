@@ -6,7 +6,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 7.4.2
+Version: 8.0
 
 #### Use our cli
 
@@ -34,6 +34,9 @@ if you want to clear your REPL history \(since v7.2\), just delete the file
 If you do not want to generate that file, just use `--nohistories`.
 
 #### Execute in-python-program
+
+Notice since 8.0 **Except for `Trawpaw`, other classes are moved to `trawpaw.components`.
+Also, `__doc__` moved to `trawpaw.doc.DOCUMENT`, `VERSION` moved to `trawpaw.doc.VERSION`**
 
 You need to clone this repository ,
 set up venv \(optional but recommended\)
@@ -79,30 +82,23 @@ result = executor.execute(
     
     startAtCol=0, # Never pass this parameter; let it be handled internally only.
 
-    # Name of this parameter uses camel case since 6.0
-    # before 6.0, it uses snake case.
     # You can pass this parameter using one of:
     # - TrawpawExecutionMethod.printManually: to print the result manually (default)
-    #                                         and do `~.storeInResult` (see below)
     # - TrawpawExecutionMethod.storeInResult: to store in the result as a string
     #                                  then return it when execution is finished
-    executionMethod=trawpaw.TrawpawExecutionMethod.printManually
-); # Returns dict before v6.0, returns TrawpawResult since v6.0
+    # - TrawpawExecutionMethod.storeInResultExpression: to store as a result expression
+    #                                  then return it when execution is finished
+    executionMethod=trawpaw.components.Tem.printManually,
+
+    # Simple mode (default value is False)
+    # If enabled the simple mode, Trawpaw won't support
+    # - File importting
+    # - Getting input
+    simpleMode=False
+);
 ```
 
 ##### Handle the result
-
-Before v6.0
-
-```py
-if trawpaw_result["status"] == 1:
-  print(result.get("message", "ERR: Unknown error occurred."))
-else:
-  print(result.get("result", ""))
-
-```
-
-Since v6.0
 
 ```py
 if trawpaw_result.status == 1:
@@ -111,8 +107,7 @@ else:
   print(result.result)
 ```
 
-`Treapaw().execute()` will returns a dictionary \(before v6.0\)
-or returns a `TrawpawResult` object \(since v6.0\)
+`Treapaw().execute()` will returns a `TrawpawResult` object \(since v6.0\)
 with the following keys
 
 - status
@@ -161,13 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ## Hello World in Trawpaw
 
-Before v4.5
-
 ```trawpaw
 !##[[[[[[+]]]+]]].>#[[[[[[+]+]]]+]]+.[[+]+]+..[+]+.>#[[[[[+]]+]+]].[[[-]-]].<[[[+]]].[[[-]]].[+]+.[[-]-].[[[-]]].>+.#<#<#
 ```
 
-Since v4.5
+or simplifier
 
 ```trawpaw
 !!#$ai$as"Hello, world!"!$print$a
@@ -189,11 +182,11 @@ Here is an example of how to register a custom module:
     # ---- The datatypes that this module can handle.
     # ---- Note: TrawpawDatatypes is a flag, so you can
     # ----     combine multiple datatypes using bitwise OR operator (|).
-    availableDatatypes=trawpaw.TrawpawDatatypes.String | trawpaw.TrawpawDatatypes.Number,
-    # param handleResult: trawpaw.TrawpawHandleModuleResult:
+    availableDatatypes=trawpaw.components.Tdt.String | trawpaw.components.Tdt.Number,
+    # param handleResult: trawpaw.components.TrawpawHandleModuleResult:
     # ---- Ways to handle the result of this module.
     # ---- Default value is `TrawpawHandleModuleResult.printManually`
-    handleResult=trawpaw.TrawpawHandleModuleResult.printManually
+    handleResult=trawpaw.components.Thmr.printManually
 )
 def foo(arg: str | int) -> str: # Your module should receive (only) one argument
     return f"Your input is {arg}"
@@ -212,8 +205,6 @@ Please read `customModulesExample.py` for examples.
 | "number"             | int              | TrawpawDatatypes.Number      |
 | "function"           | TrawpawFunction  | TrawpawDatatypes.Function    |
 | "linkcell"           | TrawpawLinkCell  | TrawpawDatatypes.LinkCell    |
-
-Notice: Before v7.0, "linkcell" is called "linkmemory".
 
 - We will infer their data type in trawpaw
   based on the return value of your custom modules.
@@ -246,8 +237,6 @@ executor.unregisterCustomModule("module name")
 
 Yes, the `unregisterCustomModule` is not a decorator.
 
-But before 7.0_1, please use `del executor.customModules["module name"]` instead.
-
 #### TrawpawFunction and TrawpawLinkCell
 
 Encapsulation (object definition)
@@ -262,6 +251,50 @@ Get content
 ```py
 trawpaw_function.value # trawpaw_function is instance of TrawpawFunction
 trawpaw_link_cell.value # trawpaw_link_cell is instance of TrawpawLinkCell
+```
+
+### Processing Result Expressions
+
+Due to space limitations, we will not cover the syntax of result expressions,
+only the processing methods.
+
+```py
+from trawpaw import Trawpaw
+from trawpaw.components import Tem
+
+executor = Trawpaw()
+
+res = executor.execute(
+    "your code",
+    executionMethod=Tem.storeInResultExpression,
+)
+```
+
+At this point, `res.output` is a result expression.
+You can use the functions in `trawpaw.tools` to process them.
+
+```py
+from trawpaw.tools import \
+    simplifyResultExpression, executeResultExpression, \
+    compileResultExpression
+
+# This function is used to simplify the result expression
+# resultExpression: the result expression
+simplifyResultExpression(resultExpression: str) -> str
+
+# This function is used to execute the result expression
+# resultExpression: the result expression
+executeResultExpression(resultExpression: str) -> None
+
+# This function is used to convert the result expression to another language
+# resultExpr: the result expression
+# targetLang: target language, can be python or frontend JavaScript
+# javascriptElemName: variable name to use when targetLang is 'javascript'
+compileResultExpression(
+    resultExpr: str,
+    targetLang: Literal["python"] | Literal["javascript"] = "python",
+    javascriptElemName: str = "default",
+) -> str
 ```
 
 ### Aliases

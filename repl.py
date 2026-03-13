@@ -1,0 +1,160 @@
+import sys
+
+
+def main():
+    try:
+        from trawpaw import Trawpaw
+        from trawpaw.doc import VERSION, DOCUMENT
+        from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
+        from prompt_toolkit import prompt
+        from prompt_toolkit.history import FileHistory
+        import pydoc
+
+        parser = ArgumentParser(
+            usage="trawpaw [options] <file>",
+            description="Trawpaw v" + VERSION,
+            formatter_class=RawTextHelpFormatter,
+        )
+        running_method = parser.add_mutually_exclusive_group(required=False)
+        parser.add_argument(
+            "--usage",
+            "-u",
+            action="store_true",
+            help="Show usage information and quit.",
+        )
+        parser.add_argument(
+            "file", nargs="?", help="Path to the Trawpaw source code file."
+        )
+        parser.add_argument(
+            "--cells",
+            "-m",
+            type=int,
+            default=128,
+            help="Number of memory cells to use (1 <= cells <= 65536) (default: 128).",
+        )
+        parser.add_argument(
+            "--maxvaluepercell",
+            "-v",
+            type=int,
+            default=127,
+            help="Maximum value per cell (0 <= maxvaluepercell <= 65535) (default: 127).",
+        )
+        parser.add_argument(
+            "--version",
+            "-V",
+            action="version",
+            version=VERSION,
+            help="Show version information and quit.",
+        )
+        running_method.add_argument(
+            "--waste_preview", action="store_true", help="Run waste (preview) code"
+        )
+        running_method.add_argument(
+            "--waste", action="store_true", help="Run waste code"
+        )
+        running_method.add_argument(
+            "--brainfuck", "-bf", action="store_true", help="Run Brainfuck code"
+        )
+        running_method.add_argument(
+            "--nohistories",
+            "-nh",
+            action="store_true",
+            help="Tell REPL do not use histories",
+        )
+
+        args: Namespace = parser.parse_args()
+        trawpaw_executor: Trawpaw
+        try:
+            trawpaw_executor = Trawpaw(args.cells, args.maxvaluepercell)
+        except AssertionError as e:
+            print(f"ERR: {e}")
+            sys.exit(1)
+
+        if args.usage:
+            pydoc.pager(DOCUMENT)  # type: ignore
+            sys.exit(0)
+        elif args.file:
+            with open(args.file, "r", encoding="utf-8") as f:
+                code: str = f.read()
+                if args.waste_preview:
+                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
+                elif args.waste:
+                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                elif args.brainfuck:
+                    trawpaw_result = trawpaw_executor.runBrainfk(code)
+                else:
+                    trawpaw_result = trawpaw_executor.execute(code)
+                print(end="\n")
+                if trawpaw_result.status == 1:
+                    print(trawpaw_result.message)
+                f.close()
+            sys.exit(0)
+        else:
+            if args.nohistories:
+                histories = None
+            else:
+                histories = FileHistory(".tphistories")
+
+            if args.waste:
+                print(
+                    "View https://github.com/ChenQingMua/WasteLanguage-Professional for more information"
+                )
+            elif args.waste_preview:
+                print(
+                    "View https://github.com/ChenQingMua/WasteLanguage-Preview for more information"
+                )
+            else:
+                print("Run `trawpaw --usage` for more information")
+
+            if sys.platform == "darwin":
+                print("Press Cmd+C or Cmd+D to exit.")
+            else:
+                print("Press Ctrl+C or Ctrl+D to exit.")
+
+            if args.waste or args.waste_preview:
+                trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                if args.waste:
+                    code = prompt("[waste c:0] ", history=histories)
+                else:
+                    code = prompt("[waste] ", history=histories)
+            elif args.brainfuck:
+                code = prompt("[bf c:0] ", history=histories)
+            else:
+                code = prompt("[c:0 v:0] ", history=histories)
+            while True:
+                if args.waste_preview:
+                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
+                elif args.waste:
+                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                elif args.brainfuck:
+                    trawpaw_result = trawpaw_executor.runBrainfk(code)
+                else:
+                    trawpaw_result = trawpaw_executor.execute(code)
+                print(end="\n")
+                if trawpaw_result.status == 1:
+                    print(trawpaw_result.message)
+                # else:
+                #     print(getattr(trawpaw_result, "result", ""))
+                if args.waste:
+                    code = prompt(f"[waste c:{trawpaw_executor.cursor}] ")
+                elif args.waste_preview:
+                    code = prompt("[waste] ", history=histories)
+                elif args.brainfuck:
+                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=histories)
+                else:
+                    code = prompt(
+                        f"[c:{trawpaw_result.cursor} v:{trawpaw_result.datalistlength}] ",
+                        history=histories,
+                    )
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except EOFError:
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
+else:
+    raise ImportError("This is REPL, not a module")
