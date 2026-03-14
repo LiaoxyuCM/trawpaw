@@ -253,6 +253,8 @@ class Trawpaw:
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] // 2
                     ) % self.maxvaluepercell
+                case "＾" | "^":
+                    self.cells[self.cursor] = (randint(0, 1)) % self.maxvaluepercell
                 case ";" | "；":
                     self.cells[self.cursor] = (
                         self.cells[self.cursor] + randint(0, 1)

@@ -1,4 +1,4 @@
-VERSION: str = "8.0"
+VERSION: str = "8.1"
 
 DOCUMENT = r"""
 REQUIREMENT:

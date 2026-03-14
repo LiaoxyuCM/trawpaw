@@ -100,10 +100,12 @@ def main():
             if args.waste:
                 print(
                     "View https://github.com/ChenQingMua/WasteLanguage-Professional for more information"
+                    + "\nDownload the genuine WasteLanguage, not only `trawpaw --waste`!!!"
                 )
             elif args.waste_preview:
                 print(
                     "View https://github.com/ChenQingMua/WasteLanguage-Preview for more information"
+                    + "\nDownload the genuine WasteLanguage, not only `trawpaw --waste_preview`!!!"
                 )
             else:
                 print("Run `trawpaw --usage` for more information")
@@ -138,7 +140,9 @@ def main():
                 # else:
                 #     print(getattr(trawpaw_result, "result", ""))
                 if args.waste:
-                    code = prompt(f"[waste c:{trawpaw_executor.cursor}] ")
+                    code = prompt(
+                        f"[waste c:{trawpaw_executor.cursor}] ", history=histories
+                    )
                 elif args.waste_preview:
                     code = prompt("[waste] ", history=histories)
                 elif args.brainfuck:
