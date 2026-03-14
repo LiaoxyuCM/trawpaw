@@ -35,7 +35,7 @@ If you do not want to generate that file, just use `--nohistories`.
 
 #### Execute in-python-program
 
-Notice since 8.0 **Except for `Trawpaw`, other classes are moved to `trawpaw.components`.
+Notice since 8.0 **Except for `Trawpaw`, other classes moved to `trawpaw.components`.
 Also, `__doc__` moved to `trawpaw.doc.DOCUMENT`, `VERSION` moved to `trawpaw.doc.VERSION`**
 
 You need to clone this repository ,
