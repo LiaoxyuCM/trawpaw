@@ -1,3 +1,9 @@
+/*!
+ * Copyright (c) 2026 LiaoxyuCM. All Rights Reserved.
+ *
+ * Trawpaw JavaScript Edition (deprecated)
+ */
+
 export class Trawpaw {
 	constructor(memories = 128, maxvaluepermem = 127) {
 		const validMemories = [128, 1024, 65536];

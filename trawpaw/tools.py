@@ -97,26 +97,29 @@ def compileResultExpression(
         try:
             out = ""
             code = ""
+            last_control = ""
             timeouts = []
             while len(resultExpr) > col:
                 match resultExpr[col]:
                     case "d":
                         col += 1
                         out += resultExpr[col]
+                        last_control = "d"
                     case "c":
                         if out:
-                            code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                            code += f"{' ' * len(timeouts) * 2}{javascriptElemName}.textContent += {repr(out)};\n"
                             out = ""
                         code += (
-                            " " * len(timeouts) * 4
+                            " " * len(timeouts) * 2
                             + f'{javascriptElemName}.textContent = "";\n'
                         )
+                        last_control = "c"
                     case "w":
                         if out:
-                            code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                            code += f"{' ' * len(timeouts) * 2}{javascriptElemName}.textContent += {repr(out)};\n"
                             out = ""
                         col += 1
-                        code += " " * len(timeouts) * 4 + "setTimeout(function () {\n"
+                        code += " " * len(timeouts) * 2 + "setTimeout(function () {\n"
                         if resultExpr[col] == "1":
                             timeouts.append(1000)
                         elif resultExpr[col] == ".":
@@ -125,16 +128,20 @@ def compileResultExpression(
                             timeouts.append(1)
                         else:
                             raise SyntaxError("Invalid result expression")
+                        if last_control == "w":
+                            code = "\n".join(code.split("\n")[:-2]) + "\n"
+                            timeouts.append(timeouts.pop() + timeouts.pop())
+                        last_control = "w"
                     case _:
                         raise SyntaxError("Invalid result expression")
                 col += 1
             if out:
-                code += f"{' ' * len(timeouts) * 4}{javascriptElemName}.textContent += {repr(out)};\n"
+                code += f"{' ' * len(timeouts) * 2}{javascriptElemName}.textContent += {repr(out)};\n"
                 out = ""
             if timeouts:
                 for i in timeouts.copy()[::-1]:
                     timeouts.pop()
-                    code += " " * len(timeouts) * 4 + "}, " + str(i) + ");\n"
+                    code += " " * len(timeouts) * 2 + "}, " + str(i) + ");\n"
             return code
 
         except IndexError:
