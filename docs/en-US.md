@@ -1,12 +1,14 @@
 # Trawpaw
 
+Note: **Some paragraphs translated by AI. Check for mistakes.**
+
 At least it is a Turing complete.
 
 ## Usage
 
 ### Python
 
-Version: 8.2
+Version: 8.3
 
 #### Use our cli
 
@@ -92,7 +94,7 @@ result = executor.execute(
 
     # Simple mode (default value is False)
     # If enabled the simple mode, Trawpaw won't support
-    # - File importting
+    # - Waiting
     # - Getting input
     simpleMode=False
 );
@@ -295,6 +297,50 @@ compileResultExpression(
     targetLang: Literal["python"] | Literal["javascript"] = "python",
     javascriptElemName: str = "default",
 ) -> str
+```
+
+### Trawpawl
+
+Note: **This tool has not been integrated into Repl yet,
+and its function implementation is very simple.
+Trawpawl does not escape HTML special characters,
+so you must manually call the internal module `string.escape`.
+To execute Trawpawl code, use `trawpaw.tools.compileTrawpawl`**
+
+The syntax is as follows:
+
+```tpwl
+<|namespace code|>
+```
+
+`namespace`: Namespace. If it does not exist,
+a new object will be created with this namespace;
+otherwise, the object corresponding to this namespace will be used.
+To put it simply, to retrieve data from the last executed code
+(such as getting a cursor address),
+the namespace must be exactly the same as the previous one.
+
+`code`: Needless to say, fill in the source code to be executed here.
+
+#### Example
+
+```tpwl
+<p>
+    First output
+    <|first
+        ++++!.
+    |>
+    
+    Second output
+    <|second
+        [+++]**!.
+    |>
+
+    Third output, using data from the first segment of code
+    <|first
+        ++++!. {Will output 8 instead of 4}
+    |>
+</p>
 ```
 
 ### Aliases

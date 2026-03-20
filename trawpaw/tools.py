@@ -2,6 +2,51 @@ import time
 import os
 import sys
 from typing import Literal
+from . import Trawpaw
+from .components import Tem
+
+
+def compileTrawpawl(source: str, cells: int = 128, maxvaluepercell: int = 127) -> str:
+    col = 0
+    out = ""
+    objs: dict[str, Trawpaw] = {}
+    while len(source) > col:
+        try:
+            if source[col] == "<" and source[col + 1] == "|":
+                col += 2
+                name = ""
+                while source[col] not in [" ", "\n", "\t"]:
+                    name += source[col]
+                    col += 1
+
+                if not objs.get(name, None):
+                    objs[name] = Trawpaw(cells=cells, maxvaluepercell=maxvaluepercell)
+
+                code = ""
+
+                while not (source[col] == "|" and source[col + 1] == ">"):
+                    code += source[col]
+                    col += 1
+
+                col += 1
+
+                result = objs[name].execute(
+                    code, executionMethod=Tem.storeInResult, quickMode=True
+                )
+
+                if result.status == 1:
+                    out += result.message
+                else:
+                    out += result.result
+
+            else:
+                out += source[col]
+        except Exception:
+            raise SyntaxError("Invalid trawpawl syntax")
+
+        col += 1
+
+    return out
 
 
 def simplifyResultExpression(resultExpression: str) -> str:

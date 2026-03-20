@@ -8,7 +8,11 @@ def main():
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
         from prompt_toolkit import prompt
         from prompt_toolkit.history import FileHistory
+        import colorama
         import pydoc
+
+        colorama.init(convert=True)
+        Fore = colorama.Fore
 
         parser = ArgumentParser(
             usage="trawpaw [options] <file>",
@@ -88,7 +92,7 @@ def main():
                     trawpaw_result = trawpaw_executor.execute(code)
                 print(end="\n")
                 if trawpaw_result.status == 1:
-                    print(trawpaw_result.message)
+                    print(Fore.RED + trawpaw_result.message + Fore.RESET)
                 f.close()
             sys.exit(0)
         else:

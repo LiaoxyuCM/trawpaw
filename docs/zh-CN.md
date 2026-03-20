@@ -6,7 +6,7 @@
 
 ### Python
 
-版本: 8.2
+版本: 8.3
 
 #### 用我们的命令行
 
@@ -90,7 +90,7 @@ result = executor.execute(
 
     # 简单模式，默认值为False
     # 这个模式启用之之后, Trawpaw将不支持
-    # - 导入文件
+    # - 等待
     # - 获取输入
     simpleMode=False
 );
@@ -291,6 +291,46 @@ compileResultExpression(
     targetLang: Literal["python"] | Literal["javascript"] = "python",
     javascriptElemName: str = "default",
 ) -> str
+```
+
+### Trawpawl
+
+注意：**这个工具尚未集成至Repl中，且功能实现很简单
+Trawpawl不会对html特殊字符进行转义，你必须手动调用内部功能`string.escape`
+要执行trawpawl代码，请使用`trawpaw.tools.compileTrawpawl`**
+
+语法如下
+
+```tpwl
+<|namespace code|>
+```
+
+`namespace`: 命名空间，如果不存在，将用这个命名空间创建一个新对象
+反之使用该命名空间对应的对象
+通俗一点，要获取上一次执行代码的数据（比如获取指针地址）
+命名空间就必须跟上一个的一模一样
+
+`code`: 不用我多说了吧，这里填要执行的源代码
+
+#### 示例
+
+```tpwl
+<p>
+    第一个输出
+    <|first
+        ++++!.
+    |>
+    
+    第二个输出
+    <|second
+        [+++]**!.
+    |>
+
+    第三个输出，使用第一段代码的数据
+    <|first
+        ++++!. {将会输出8，而非4}
+    |>
+</p>
 ```
 
 ### 别名

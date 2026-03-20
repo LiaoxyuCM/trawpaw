@@ -3,19 +3,11 @@ from time import sleep
 from prompt_toolkit import prompt
 from typing import Callable
 from .components import Tem, Tdt, Tfun, Thmr, Tlc, Trst
-import colorama
 import sys
 import os
 import urllib.parse
 import hashlib
 import base64
-
-
-############# INIT #############
-
-colorama.init(convert=True)
-Fore = colorama.Fore
-
 ############# MAIN #############
 
 
@@ -50,7 +42,7 @@ class Trawpaw:
         return Trst(
             {
                 "status": 1,
-                "message": f"{Fore.RED}ERR: {msg}{Fore.RESET}",
+                "message": f"ERR: {msg}",
                 "cursor": self.cursor,
                 "datalistlength": len(self.datalist),
             }
@@ -234,7 +226,7 @@ class Trawpaw:
                     elif executionMethod == Tem.storeInResultExpression:
                         out += "c"
                     else:
-                        out += ""
+                        out = ""
                 case "＃" | "#":
                     self.cells[self.cursor] = 0
                 case "+" | "＋":
@@ -375,6 +367,7 @@ class Trawpaw:
         saveto: str,
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
+        quickMode: bool = False,
     ) -> Trst:
         saved: int = 0
         ptr: int = self.cells[self.cursor]
@@ -402,7 +395,7 @@ class Trawpaw:
                     elif executionMethod == Tem.storeInResultExpression:
                         out += "c"
                     else:
-                        out += ""
+                        out = ""
                 case "，" | ",":
                     if executionMethod == Tem.printManually:
                         print(code[col - startAtCol + 1 :], end="")
@@ -451,6 +444,10 @@ class Trawpaw:
                         sys.stdout.flush()
                     out += "\n"
                 case "？" | "?":
+                    if quickMode:
+                        return self.buildException(
+                            "In quick mode, waitting is not supported. Please change your settings."
+                        )
                     if executionMethod == Tem.storeInResultExpression:
                         out += "w_"
                     else:
@@ -629,6 +626,10 @@ class Trawpaw:
                     case "$":
                         data_definition = True
                     case "_":
+                        if quickMode:
+                            return self.buildException(
+                                "In quick mode, waitting is not supported. Please change your settings."
+                            )
                         if special:
                             if executionMethod == Tem.storeInResultExpression:
                                 result += "w."
@@ -1022,6 +1023,7 @@ class Trawpaw:
                                                 "startAtCol"
                                             ],
                                             executionMethod=executionMethod,
+                                            quickMode=quickMode,
                                         )
                                         if function_result.status == 1:
                                             return self.buildException(
@@ -1038,10 +1040,6 @@ class Trawpaw:
                                         f"(One of) arguments is not initialized at col {col}."
                                     )
                         elif dofunction == "include":
-                            if quickMode:
-                                return self.buildException(
-                                    "In quick mode, file including is not supported. Please change your settings."
-                                )
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
@@ -1084,10 +1082,6 @@ class Trawpaw:
                             )
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
-                                    if quickMode:
-                                        return self.buildException(
-                                            "In quick mode, file including is not supported. Please change your settings."
-                                        )
                                     try:
                                         with open(
                                             self.datalist[varname]["value"],
