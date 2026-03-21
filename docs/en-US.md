@@ -59,7 +59,7 @@ python -m venv pyenv # Or custom name of virtual env
 pyenv/Scripts/activate
 ## Install dependencies
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements/base.txt
 ```
 
 Then you can import the `trawpaw` module in your Python code

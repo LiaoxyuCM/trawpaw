@@ -1,3 +1,2 @@
-pyinstaller
-prompt-toolkit
-colorama
+-r requirements/base.txt
+-r requirements/prod.txt

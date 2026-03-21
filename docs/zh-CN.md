@@ -55,7 +55,7 @@ python -m venv pyenv # 或者你自己起个名字
 pyenv/Scripts/activate
 ## 安装依赖
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements/base.txt
 ```
 
 然后你可以在你的代码里导入 `trawpaw` 库，
