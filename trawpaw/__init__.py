@@ -313,7 +313,10 @@ class Trawpaw:
                             )
                         else:
                             col = skip_rs["col"] - 1
-                    bracketStack.append({"type": ")", "position": col, "currranges": 0})
+                    else:
+                        bracketStack.append(
+                            {"type": ")", "position": col, "currranges": 0}
+                        )
                 case "）" | ")":
                     if not bracketStack:
                         return self.buildException(
@@ -485,7 +488,10 @@ class Trawpaw:
                             )
                         else:
                             col = skip_rs["col"] - 1
-                    bracketStack.append({"type": ")", "position": col, "currranges": 0})
+                    else:
+                        bracketStack.append(
+                            {"type": ")", "position": col, "currranges": 0}
+                        )
                 case "）" | ")":
                     if not bracketStack:
                         return self.buildException(
