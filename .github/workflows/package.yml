@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.13'
 
@@ -31,7 +31,7 @@ jobs:
           pyinstaller --onefile repl.py -n trawpaw --hidden-import=prompt_toolkit --hidden-import=colorama
 
       - name: Upload Executable
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v3.2.2
         with:
           name: trawpaw-${{ matrix.os }}
           path: dist/
