@@ -27,8 +27,9 @@ def main():
             help="Show usage information and quit.",
         )
         parser.add_argument(
-            "file", nargs="?",
-            help="Path to the Trawpaw source code file or file to listen"
+            "file",
+            nargs="?",
+            help="Path to the Trawpaw source code file or file to listen",
         )
         parser.add_argument(
             "--cells",
@@ -57,7 +58,7 @@ def main():
             type=str,
             metavar="OUT_FILE",
             required=False,
-            help="Enable trawpawl and set the file to output"
+            help="Enable trawpawl and set the file to output",
         )
         running_method.add_argument(
             "--waste_preview", action="store_true", help="Run waste (preview) code"
@@ -96,6 +97,7 @@ def main():
                 from math import floor
 
                 print(f"Listening {args.file}")
+
                 def watch_file_content(file_path, interval=1):
                     if not os.path.exists(file_path):
                         print(f"File not exists: {file_path}")
@@ -114,11 +116,19 @@ def main():
                                         print("File changed, compiling...")
                                         start_time = time.time()
 
-                                        result = compileTrawpawl(current_content)
+                                        result = compileTrawpawl(
+                                            current_content,
+                                            cells=args.cells,
+                                            maxvaluepercell=args.maxvaluepercell,
+                                        )
 
-                                        with open(args.trawpawl, "w", encoding="UTF-8") as f:
+                                        with open(
+                                            args.trawpawl, "w", encoding="UTF-8"
+                                        ) as f:
                                             f.write(result)
-                                            print(f"Ok. Took {floor((time.time() - start_time)*10000)/10}ms")
+                                            print(
+                                                f"Ok. Took {floor((time.time() - start_time) * 100000) / 100}ms"
+                                            )
                                         last_content = current_content
 
                                 except FileNotFoundError:
@@ -131,7 +141,6 @@ def main():
                                 time.sleep(interval)
                         except KeyboardInterrupt:
                             sys.exit(0)
-
 
                 watch_file_content(args.file)
 
