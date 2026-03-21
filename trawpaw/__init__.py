@@ -201,7 +201,6 @@ class Trawpaw:
                 "To run waste (professional) code, at least 10 cells is required, please change your settings",
             )
         saved: int = 0
-        self.cursor = 0
         try:
             if self.datalist[saveto]["type"] == "number":
                 saved = self.datalist[saveto]["value"]
@@ -314,6 +313,7 @@ class Trawpaw:
                             )
                         else:
                             col = skip_rs["col"] - 1
+                    bracketStack.append({"type": ")", "position": col, "currranges": 0})
                 case "）" | ")":
                     if not bracketStack:
                         return self.buildException(
@@ -416,21 +416,21 @@ class Trawpaw:
                     ptr = (ptr // 2) % self.maxvaluepercell
                 case "％" | "%":
                     if executionMethod == Tem.printManually:
-                        print(str(self.cells[self.cursor]), end="")
+                        print(str(ptr), end="")
                     elif executionMethod == Tem.storeInResultExpression:
-                        out += "d" + "d".join(list(str(self.cells[self.cursor])))
+                        out += "d" + "d".join(list(str(ptr)))
                     else:
-                        out += str(self.cells[self.cursor])
+                        out += str(ptr)
                 case "＆" | "&":
                     prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
                         if executionMethod == Tem.printManually:
-                            print(chr(self.cells[self.cursor]), end="")
+                            print(chr(ptr), end="")
                         elif executionMethod == Tem.storeInResultExpression:
-                            out += "d" + chr(self.cells[self.cursor])
+                            out += "d" + chr(ptr)
                         else:
-                            out += chr(self.cells[self.cursor])
+                            out += chr(ptr)
                     except Exception:
                         if executionMethod == Tem.printManually:
                             print("?", end="")
@@ -485,6 +485,7 @@ class Trawpaw:
                             )
                         else:
                             col = skip_rs["col"] - 1
+                    bracketStack.append({"type": ")", "position": col, "currranges": 0})
                 case "）" | ")":
                     if not bracketStack:
                         return self.buildException(
@@ -1053,7 +1054,10 @@ class Trawpaw:
                                             include_code = f.read()
                                             f.close()
                                         function_result = self.execute(
-                                            include_code, startAtCol=0
+                                            include_code,
+                                            startAtCol=0,
+                                            executionMethod=executionMethod,
+                                            quickMode=quickMode,
                                         )
                                         if function_result.status == 1:
                                             return self.buildException(
@@ -1107,7 +1111,7 @@ class Trawpaw:
                                             result += function_result.result
                                     except FileNotFoundError:
                                         return self.buildException(
-                                            f"Included file '{self.datalist[varname]['value']}' not found at col {col}."
+                                            f"Included file {self.datalist[varname]['value']} not found at col {col}."
                                         )
                                 elif self.datalist[varname]["type"] == "function":
                                     include_code = self.datalist[varname]["value"]
@@ -1115,6 +1119,7 @@ class Trawpaw:
                                         include_code,
                                         startAtCol=self.datalist[varname]["startAtCol"],
                                         executionMethod=executionMethod,
+                                        quickMode=quickMode,
                                     )
                                     if function_result.status == 1:
                                         return self.buildException(

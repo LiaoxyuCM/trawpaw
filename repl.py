@@ -212,7 +212,7 @@ def main():
                 #     print(getattr(trawpaw_result, "result", ""))
                 if args.waste:
                     code = prompt(
-                        f"[waste c:{trawpaw_executor.cursor}] ", history=histories
+                        f"[waste c:{trawpaw_result.cursor}] ", history=histories
                     )
                 elif args.waste_preview:
                     code = prompt("[waste] ", history=histories)
