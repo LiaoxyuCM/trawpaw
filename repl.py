@@ -27,7 +27,8 @@ def main():
             help="Show usage information and quit.",
         )
         parser.add_argument(
-            "file", nargs="?", help="Path to the Trawpaw source code file."
+            "file", nargs="?",
+            help="Path to the Trawpaw source code file or file to listen"
         )
         parser.add_argument(
             "--cells",
@@ -49,6 +50,14 @@ def main():
             action="version",
             version=VERSION,
             help="Show version information and quit.",
+        )
+        parser.add_argument(
+            "--trawpawl",
+            "-tpwl",
+            type=str,
+            metavar="OUT_FILE",
+            required=False,
+            help="Enable trawpawl and set the file to output"
         )
         running_method.add_argument(
             "--waste_preview", action="store_true", help="Run waste (preview) code"
@@ -77,6 +86,55 @@ def main():
         if args.usage:
             pydoc.pager(DOCUMENT)  # type: ignore
             sys.exit(0)
+        elif args.trawpawl:
+            if not args.file:
+                parser.error("Filepath is required when enabled --trawpawl")
+            else:
+                import os
+                import time
+                from trawpaw.tools import compileTrawpawl
+                from math import floor
+
+                print(f"Listening {args.file}")
+                def watch_file_content(file_path, interval=1):
+                    if not os.path.exists(file_path):
+                        print(f"File not exists: {file_path}")
+                        return
+
+                    with open(file_path, "rb") as f:
+                        try:
+                            last_content = f.read()
+
+                            while True:
+                                try:
+                                    with open(file_path, "r", encoding="UTF-8") as f:
+                                        current_content = f.read()
+
+                                    if current_content != last_content:
+                                        print("File changed, compiling...")
+                                        start_time = time.time()
+
+                                        result = compileTrawpawl(current_content)
+
+                                        with open(args.trawpawl, "w", encoding="UTF-8") as f:
+                                            f.write(result)
+                                            print(f"Ok. Took {floor((time.time() - start_time)*10000)/10}ms")
+                                        last_content = current_content
+
+                                except FileNotFoundError:
+                                    print(f"File not exists: {file_path}")
+                                    break
+                                except Exception as e:
+                                    print(f"Error: {e}")
+                                    sys.exit(1)
+
+                                time.sleep(interval)
+                        except KeyboardInterrupt:
+                            sys.exit(0)
+
+
+                watch_file_content(args.file)
+
         elif args.file:
             with open(args.file, "r", encoding="utf-8") as f:
                 code: str = f.read()

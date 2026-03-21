@@ -6,7 +6,7 @@
 
 ### Python
 
-版本: 8.3
+版本: 8.4
 
 #### 用我们的命令行
 
@@ -22,6 +22,7 @@ trawpaw # 打开 Trawpaw 交互式环境
 trawpaw --help # 获取更多信息
 trawpaw --usage # 显示Trawpaw用法
 trawpaw --version # 显示trawpaw版本
+trawpaw --trawpawl OUT_FILE FILE_TO_LISTEN # 调用 trawpawl
 trawpaw filepath # 运行文件里面的代码
 ```
 
@@ -295,10 +296,6 @@ compileResultExpression(
 
 ### Trawpawl
 
-注意：**这个工具尚未集成至Repl中，且功能实现很简单
-Trawpawl不会对html特殊字符进行转义，你必须手动调用内部功能`string.escape`
-要执行trawpawl代码，请使用`trawpaw.tools.compileTrawpawl`**
-
 语法如下
 
 ```tpwl
@@ -334,8 +331,6 @@ Trawpawl不会对html特殊字符进行转义，你必须手动调用内部功�
 ```
 
 ### 别名
-
-只有 7.3 或更高版本 可以使用别名
 
 ```txt
 Tem = TrawpawExecutionMethod

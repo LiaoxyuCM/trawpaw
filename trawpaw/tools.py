@@ -35,7 +35,7 @@ def compileTrawpawl(source: str, cells: int = 128, maxvaluepercell: int = 127) -
                 )
 
                 if result.status == 1:
-                    out += result.message
+                    out += '<span style="color: red">' + result.message + "</span>"
                 else:
                     out += result.result
 

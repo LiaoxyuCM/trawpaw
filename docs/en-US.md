@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 8.3
+Version: 8.4
 
 #### Use our cli
 
@@ -24,6 +24,7 @@ trawpaw # To open Trawpaw REPL
 trawpaw --help # For more information
 trawpaw --usage # To show trawpaw usage
 trawpaw --version # To show trawpaw version
+trawpaw --trawpawl OUT_FILE FILE_TO_LISTEN # to call trawpawl
 trawpaw filepath # To execute this file
 ```
 
@@ -87,9 +88,9 @@ result = executor.execute(
     # You can pass this parameter using one of:
     # - TrawpawExecutionMethod.printManually: to print the result manually (default)
     # - TrawpawExecutionMethod.storeInResult: to store in the result as a string
-    #                                  then return it when execution is finished
+    #                                  then return it when execution finished
     # - TrawpawExecutionMethod.storeInResultExpression: to store as a result expression
-    #                                  then return it when execution is finished
+    #                                  then return it when execution finished
     executionMethod=trawpaw.components.Tem.printManually,
 
     # Simple mode (default value is False)
@@ -280,15 +281,15 @@ from trawpaw.tools import \
     simplifyResultExpression, executeResultExpression, \
     compileResultExpression
 
-# This function is used to simplify the result expression
+# This function used to simplify the result expression
 # resultExpression: the result expression
 simplifyResultExpression(resultExpression: str) -> str
 
-# This function is used to execute the result expression
+# This function used to execute the result expression
 # resultExpression: the result expression
 executeResultExpression(resultExpression: str) -> None
 
-# This function is used to convert the result expression to another language
+# This function used to convert the result expression to another language
 # resultExpr: the result expression
 # targetLang: target language, can be python or frontend JavaScript
 # javascriptElemName: variable name to use when targetLang is 'javascript'
@@ -300,12 +301,6 @@ compileResultExpression(
 ```
 
 ### Trawpawl
-
-Note: **This tool has not been integrated into Repl yet,
-and its function implementation is very simple.
-Trawpawl does not escape HTML special characters,
-so you must manually call the internal module `string.escape`.
-To execute Trawpawl code, use `trawpaw.tools.compileTrawpawl`**
 
 The syntax is as follows:
 
@@ -344,8 +339,6 @@ the namespace must be exactly the same as the previous one.
 ```
 
 ### Aliases
-
-Only 7.3 \(or greater\) is able to use alias
 
 ```txt
 Tem = TrawpawExecutionMethod
