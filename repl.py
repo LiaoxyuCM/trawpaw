@@ -75,6 +75,13 @@ def main():
             action="store_true",
             help="Tell REPL do not use histories",
         )
+        parser.add_argument(
+            "--charset",
+            "-c",
+            type=str,
+            default="utf-8",
+            help="Assign charset to read file.",
+        )
 
         args: Namespace = parser.parse_args()
         trawpaw_executor: Trawpaw
@@ -103,65 +110,78 @@ def main():
                         print(f"File not exists: {file_path}")
                         return
 
-                    with open(file_path, "rb") as f:
-                        try:
+                    try:
+                        with open(file_path, "rb", encoding=args.charset) as f:
                             last_content = f.read()
 
                             while True:
-                                try:
-                                    with open(file_path, "r", encoding="UTF-8") as f:
-                                        current_content = f.read()
+                                with open(file_path, "r", encoding=args.charset) as f:
+                                    current_content = f.read()
 
-                                    if current_content != last_content:
-                                        print("File changed, compiling...")
-                                        start_time = time.time()
+                                if current_content != last_content:
+                                    print("File changed, compiling...")
+                                    start_time = time.time()
 
-                                        result = compileTrawpawl(
-                                            current_content,
-                                            cells=args.cells,
-                                            maxvaluepercell=args.maxvaluepercell,
+                                    result = compileTrawpawl(
+                                        current_content,
+                                        cells=args.cells,
+                                        maxvaluepercell=args.maxvaluepercell,
+                                    )
+
+                                    with open(
+                                        args.trawpawl, "w", encoding=args.charset
+                                    ) as f:
+                                        f.write(result)
+                                        print(
+                                            f"Ok. Took {floor((time.time() - start_time) * 100000) / 100}ms"
                                         )
-
-                                        with open(
-                                            args.trawpawl, "w", encoding="UTF-8"
-                                        ) as f:
-                                            f.write(result)
-                                            print(
-                                                f"Ok. Took {floor((time.time() - start_time) * 100000) / 100}ms"
-                                            )
-                                        last_content = current_content
-
-                                except FileNotFoundError:
-                                    print(f"File not exists: {file_path}")
-                                    break
-                                except Exception as e:
-                                    print(f"Error: {e}")
-                                    sys.exit(1)
+                                    last_content = current_content
 
                                 time.sleep(interval)
-                        except KeyboardInterrupt:
-                            sys.exit(0)
+                    except FileNotFoundError:
+                        print("Cannot parse this file.")
+                        sys.exit(1)
+                    except LookupError:
+                        print("Unknown charset.")
+                        sys.exit(1)
+                    except PermissionError:
+                        print(
+                            "No permission to read or write file. You may forgot to chmod it."
+                        )
+                        sys.exit(1)
+                    except KeyboardInterrupt:
+                        sys.exit(0)
 
                 watch_file_content(args.file)
 
         elif args.file:
-            with open(args.file, "r", encoding="utf-8") as f:
-                code: str = f.read()
-                if args.waste_preview:
-                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
-                elif args.waste:
-                    trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
-                elif args.brainfuck:
-                    trawpaw_result = trawpaw_executor.runBrainfk(code)
-                else:
-                    trawpaw_result = trawpaw_executor.execute(code)
-                print(end="\n")
-                if trawpaw_result.status == 1:
-                    print(Fore.RED + trawpaw_result.message + Fore.RESET)
-                f.close()
-            sys.exit(0)
+            try:
+                with open(args.file, "r", encoding=args.charset) as f:
+                    code: str = f.read()
+                    if args.waste_preview:
+                        trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                        trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
+                    elif args.waste:
+                        trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                        trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                    elif args.brainfuck:
+                        trawpaw_result = trawpaw_executor.runBrainfk(code)
+                    else:
+                        trawpaw_result = trawpaw_executor.execute(code)
+                    print(end="\n")
+                    if trawpaw_result.status == 1:
+                        print(Fore.RED + trawpaw_result.message + Fore.RESET)
+                    f.close()
+                sys.exit(0)
+            except FileNotFoundError:
+                print("Cannot parse this file.")
+                sys.exit(1)
+            except LookupError:
+                print("Unknown charset.")
+                sys.exit(1)
+            except PermissionError:
+                print("No permission to read file. You may forgot to chmod it.")
+                sys.exit(1)
         else:
             if args.nohistories:
                 histories = None

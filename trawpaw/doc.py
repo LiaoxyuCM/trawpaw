@@ -1,4 +1,4 @@
-VERSION: str = "8.4_3"
+VERSION: str = "8.5"
 
 DOCUMENT = r"""
 REQUIREMENT:
@@ -34,10 +34,10 @@ L            :VarController    :Link variable to current cursor position (used a
 D            :VarController    :Delete variable (used after $[name])
 F            :VarController    :Define a function (used after $[name])
 S            :VarController    :Define a string variable (used after $[name])
-=            :VarController    :Copy b's value and datatype into a (syntax `$a=$b`)
+=            :VarController    :Copy b's value and datatype into a (syntax `$a=$b`) or copy debug mark's value (Storeable/St.able only)
 
 V            :DebugMark        :Show current list of variables
-C            :DebugMark        :Show current address of cursor
+C            :DebugMark&St.able:Show current address of cursor
 M            :DebugMark        :Show count of cells and max value per cell.
 B            :DebugMark        :Show current datalist (variables)
 

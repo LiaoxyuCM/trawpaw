@@ -349,6 +349,9 @@ class Trawpaw:
                         bracketStack.pop()
             col += 1
 
+        if bracketStack:
+            return self.buildException(f"Bracket is not closed at col {col}.")
+
         # Save the save to datalist
         try:
             self.datalist[saveto]["type"] = "number"
@@ -524,6 +527,9 @@ class Trawpaw:
                         bracketStack.pop()
             col += 1
 
+        if bracketStack:
+            return self.buildException(f"Bracket is not closed at col {col}.")
+
         # Save result to datalist
         try:
             self.cells[self.cursor] = ptr
@@ -687,7 +693,7 @@ class Trawpaw:
                                 str(len(self.cells))
                                 + " "
                                 + str(self.maxvaluepercell - 1)
-                            )  # Because the trailing comma was omitted, Python recognized it as a tuple ..
+                            )
                             if executionMethod == Tem.printManually:
                                 print(str(celldata), end="")
                             elif executionMethod == Tem.storeInResultExpression:
@@ -1752,8 +1758,7 @@ class Trawpaw:
                                         col += 1
                                         if code[col - startAtCol] == end_char:
                                             break
-                                        else:
-                                            function_body += code[col - startAtCol]
+                                        function_body += code[col - startAtCol]
                                     except IndexError:
                                         return self.buildException(
                                             f"The function definition is not properly closed at col {col}."
@@ -1768,7 +1773,6 @@ class Trawpaw:
                             try:
                                 col += 1
 
-                                # next, we receive a character.
                                 end_char = code[col - startAtCol]
                                 string_body = ""
                                 while True:
@@ -1776,44 +1780,43 @@ class Trawpaw:
                                         col += 1
                                         if code[col - startAtCol] == end_char:
                                             break
+                                        if code[col - startAtCol] == "\\":
+                                            col += 1
+                                            match code[col - startAtCol]:
+                                                case "e":
+                                                    string_body += end_char
+                                                case "n":
+                                                    string_body += "\n"
+                                                case "t":
+                                                    string_body += "\t"
+                                                case "r":
+                                                    string_body += "\r"
+                                                case "\\":
+                                                    string_body += "\\"
+                                                case _:
+                                                    if (
+                                                        prompt(
+                                                            f"WARN: Do not use escape char '\\' in string definition at col {col}.\nSuggestion: use '\\\\' instead\nContinue? [yN] "
+                                                        ).lower()
+                                                        != "y"
+                                                    ):
+                                                        return Trst(
+                                                            {
+                                                                "status": 2,
+                                                                "result": result,
+                                                                "cursor": self.cursor,
+                                                                "datalistlength": len(
+                                                                    self.datalist
+                                                                ),
+                                                            }
+                                                        )
+                                                    else:
+                                                        string_body += (
+                                                            "\\"
+                                                            + code[col - startAtCol]
+                                                        )
                                         else:
-                                            if code[col - startAtCol] == "\\":
-                                                col += 1
-                                                match code[col - startAtCol]:
-                                                    case "e":
-                                                        string_body += end_char
-                                                    case "n":
-                                                        string_body += "\n"
-                                                    case "t":
-                                                        string_body += "\t"
-                                                    case "r":
-                                                        string_body += "\r"
-                                                    case "\\":
-                                                        string_body += "\\"
-                                                    case _:
-                                                        if (
-                                                            prompt(
-                                                                f"WARN: Do not use escape char '\\' in string definition at col {col}.\nSuggestion: use '\\\\' instead\nContinue? [yN] "
-                                                            ).lower()
-                                                            != "y"
-                                                        ):
-                                                            return Trst(
-                                                                {
-                                                                    "status": 2,
-                                                                    "result": result,
-                                                                    "cursor": self.cursor,
-                                                                    "datalistlength": len(
-                                                                        self.datalist
-                                                                    ),
-                                                                }
-                                                            )
-                                                        else:
-                                                            string_body += (
-                                                                "\\"
-                                                                + code[col - startAtCol]
-                                                            )
-                                            else:
-                                                string_body += code[col - startAtCol]
+                                            string_body += code[col - startAtCol]
 
                                     except IndexError:
                                         return self.buildException(
@@ -1839,13 +1842,20 @@ class Trawpaw:
                                             return self.buildException(
                                                 f"Data '{code[col - startAtCol]}' is not initialized at col {col}."
                                             )
+                                    elif code[col - startAtCol] == "@":
+                                        col += 1
+                                        if code[col - startAtCol].upper() == "C":
+                                            self.datalist[name]["type"] = "number"
+                                            self.datalist[name]["value"] = self.cursor
+                                        else:
+                                            return self.buildException("Storeable only")
                                     else:
                                         return self.buildException(
-                                            'Follow "$" after controller "="'
+                                            f'Follow "$" or "@ after controller "=" at col {col}.'
                                         )
                                 except IndexError:
                                     return self.buildException(
-                                        'Follow "$" after controller "=", not null'
+                                        f'Follow "$" or "@" after controller "=", not null at col {col}.'
                                     )
                             except KeyError:
                                 return self.buildException(
