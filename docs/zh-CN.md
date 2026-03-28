@@ -89,11 +89,11 @@ result = executor.execute(
     #                                         运行结束时返回结果
     executionMethod=trawpaw.components.Tem.printManually,
 
-    # 简单模式，默认值为False
+    # 快速模式，默认值为False
     # 这个模式启用之之后, Trawpaw将不支持
     # - 等待
     # - 获取输入
-    simpleMode=False
+    quickMode=False
 );
 ```
 

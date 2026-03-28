@@ -93,11 +93,11 @@ result = executor.execute(
     #                                  then return it when execution finished
     executionMethod=trawpaw.components.Tem.printManually,
 
-    # Simple mode (default value is False)
+    # Quick mode (default value is False)
     # If enabled the simple mode, Trawpaw won't support
     # - Waiting
     # - Getting input
-    simpleMode=False
+    quickMode=False
 );
 ```
 
