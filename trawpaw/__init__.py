@@ -85,7 +85,7 @@ class Trawpaw:
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
         quickMode: bool = False,
-        slientMode: bool = False,
+        silentMode: bool = False,
     ) -> Trst:
         inputcur: int = 0
         bracketlist: list[int] = []
@@ -107,7 +107,7 @@ class Trawpaw:
                     self.cursor = (self.cursor + 1) % len(self.cells)
                 case ",":
                     if quickMode:
-                        if not slientMode:
+                        if not silentMode:
                             warnings.warn(
                                 f"\n[TRAWPAW col:{col}] In quick mode, inputting is not supported. Now ignoring this."
                             )
@@ -198,7 +198,7 @@ class Trawpaw:
         saveto: str,
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
-        slientMode: bool = False,
+        silentMode: bool = False,
     ) -> Trst:
         if len(self.cells) < 10:
             return self._gErr(
@@ -376,7 +376,7 @@ class Trawpaw:
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
         quickMode: bool = False,
-        slientMode: bool = False,
+        silentMode: bool = False,
     ) -> Trst:
         saved: int = 0
         ptr: int = self.cells[self.cursor]
@@ -454,7 +454,7 @@ class Trawpaw:
                     out += "\n"
                 case "？" | "?":
                     if quickMode:
-                        if not slientMode:
+                        if not silentMode:
                             warnings.warn(
                                 f"\n[TRAWPAW col:{col}] In quick mode, waitting is not supported. Now ignoring this."
                             )
@@ -557,7 +557,7 @@ class Trawpaw:
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
         quickMode: bool = False,
-        slientMode: bool = False,
+        silentMode: bool = False,
     ) -> Trst:
         inputcur: int = 0
         bracketlist: list[dict] = []
@@ -618,7 +618,7 @@ class Trawpaw:
                                 else:
                                     self.cells[self.cursor] = 0
                         else:
-                            if not slientMode:
+                            if not silentMode:
                                 warnings.warn(
                                     f"\n[TRAWPAW col:{col}] In quick mode, inputting is not supported. Now ignoring this."
                                 )
@@ -645,7 +645,7 @@ class Trawpaw:
                         data_definition = True
                     case "_":
                         if quickMode:
-                            if not slientMode:
+                            if not silentMode:
                                 warnings.warn(
                                     f"\n[TRAWPAW col:{col}] In quick mode, waitting is not supported. Now ignoring this."
                                 )
@@ -965,7 +965,7 @@ class Trawpaw:
                                         startAtCol=self.datalist[name]["startAtCol"],
                                         executionMethod=executionMethod,
                                         quickMode=quickMode,
-                                        slientMode=slientMode,
+                                        silentMode=silentMode,
                                     )
                                     if function_result.status == 1:
                                         return self._gErr(function_result.message)
@@ -1000,7 +1000,7 @@ class Trawpaw:
                                                     "startAtCol"
                                                 ],
                                                 executionMethod=executionMethod,
-                                                slientMode=slientMode,
+                                                silentMode=silentMode,
                                             )
                                             if function_result.status == 1:
                                                 return self._gErr(
@@ -1039,7 +1039,7 @@ class Trawpaw:
                                             ],
                                             executionMethod=executionMethod,
                                             quickMode=quickMode,
-                                            slientMode=slientMode,
+                                            silentMode=silentMode,
                                         )
                                         if function_result.status == 1:
                                             return self._gErr(function_result.message)
@@ -1071,7 +1071,7 @@ class Trawpaw:
                                             startAtCol=0,
                                             executionMethod=executionMethod,
                                             quickMode=quickMode,
-                                            slientMode=slientMode,
+                                            silentMode=silentMode,
                                         )
                                         if function_result.status == 1:
                                             return self._gErr(
@@ -1114,7 +1114,7 @@ class Trawpaw:
                                                 startAtCol=0,
                                                 executionMethod=executionMethod,
                                                 quickMode=quickMode,
-                                                slientMode=slientMode,
+                                                silentMode=silentMode,
                                             )
                                         )
                                         if function_result.status == 1:
@@ -1135,7 +1135,7 @@ class Trawpaw:
                                         startAtCol=self.datalist[varname]["startAtCol"],
                                         executionMethod=executionMethod,
                                         quickMode=quickMode,
-                                        slientMode=slientMode,
+                                        silentMode=silentMode,
                                     )
                                     if function_result.status == 1:
                                         return self._gErr(function_result.message)
@@ -1174,7 +1174,7 @@ class Trawpaw:
                                 )
                         elif dofunction == "getinput":
                             if quickMode:
-                                if not slientMode:
+                                if not silentMode:
                                     warnings.warn(
                                         f"\n[TRAWPAW col:{col}] In quick mode, inputting is not supported. Now ignoring this."
                                     )
@@ -1719,7 +1719,7 @@ class Trawpaw:
                                         startAtCol=self.datalist[name]["startAtCol"],
                                         executionMethod=executionMethod,
                                         quickMode=quickMode,
-                                        slientMode=slientMode,
+                                        silentMode=silentMode,
                                     )
                                     if function_result.status == 1:
                                         return self._gErr(function_result.message)
@@ -1794,7 +1794,7 @@ class Trawpaw:
                                                 case "\\":
                                                     string_body += "\\"
                                                 case _:
-                                                    if not slientMode:
+                                                    if not silentMode:
                                                         warnings.warn(
                                                             f"\n[TRAWPAW col:{col}] Do not use escape char '\\' in string definition anymore.\nSuggestion: use '\\\\' instead"
                                                         )

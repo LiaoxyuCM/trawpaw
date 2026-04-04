@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 8.5.1
+Version: 8.6
 
 #### Use our cli
 
@@ -101,7 +101,7 @@ result = executor.execute(
 
     # Silent mode (default value is False)
     # If enabled, Trawpaw will ignore all warnings
-    slientMode=False
+    silentMode=False
 );
 ```
 

@@ -83,7 +83,7 @@ def main():
             default="utf-8",
             help="Assign charset to read file.",
         )
-        parser.add_argument("--slient", "-s", action="store_true", help="Slient mode")
+        parser.add_argument("--silent", "-s", action="store_true", help="silent mode")
 
         args: Namespace = parser.parse_args()
         trawpaw_executor: Trawpaw
@@ -97,7 +97,7 @@ def main():
             pydoc.pager(DOCUMENT)  # type: ignore
             sys.exit(0)
         elif args.trawpawl:
-            if (args.waste or args.waste_preview) and (not args.slient):
+            if (args.waste or args.waste_preview) and (not args.silent):
                 warnings.warn(
                     "Ignoring --waste or --waste_preview because enabled --trawpawl"
                 )
@@ -132,7 +132,7 @@ def main():
                                         current_content,
                                         cells=args.cells,
                                         maxvaluepercell=args.maxvaluepercell,
-                                        slient=args.slient,
+                                        silent=args.silent,
                                     )
 
                                     with open(
@@ -226,19 +226,19 @@ def main():
             while True:
                 if args.waste_preview:
                     trawpaw_result = trawpaw_executor.runWastePreview(
-                        code, "a", slientMode=args.slient
+                        code, "a", silentMode=args.silent
                     )
                 elif args.waste:
                     trawpaw_result = trawpaw_executor.runWaste(
-                        code, "a", slientMode=args.slient
+                        code, "a", silentMode=args.silent
                     )
                 elif args.brainfuck:
                     trawpaw_result = trawpaw_executor.runBrainfk(
-                        code, slientMode=args.slient
+                        code, silentMode=args.silent
                     )
                 else:
                     trawpaw_result = trawpaw_executor.execute(
-                        code, slientMode=args.slient
+                        code, silentMode=args.silent
                     )
                 print(end="\n")
                 if trawpaw_result.status == 1:

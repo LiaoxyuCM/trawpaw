@@ -1,19 +1,19 @@
-VERSION: str = "8.5.1"
+VERSION: str = "8.6"
 
 CREDITS: str = """
---------THANKS TO--------
+-------THANKS-TO--------
 Waste & Waste Preview
   Made by: ChenQingMua, MoKing Studio
 
 Brainf**k
-  Made by: Urban
+  Author: Urban
 
 Python
   Owned by: The Python Software Foundation
 
 And more
 
--FOR-PROVIDING-SUPPORTS--
+-FOR-PROVIDING-SUPPORTS-
 
 """
 

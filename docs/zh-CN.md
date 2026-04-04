@@ -6,7 +6,7 @@
 
 ### Python
 
-版本: 8.5.1
+版本: 8.6
 
 #### 用我们的命令行
 
@@ -93,10 +93,11 @@ result = executor.execute(
     # 这个模式启用之后, Trawpaw将不支持
     # - 等待
     # - 获取输入
-    quickMode=False
+    quickMode=False,
 
     # 静默模式，默认值为False
     # 这个模式启用之后，Trawpaw将会忽略所有警告
+    silentMode=False
 );
 ```
 

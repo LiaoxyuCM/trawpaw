@@ -7,7 +7,7 @@ from .components import Tem
 
 
 def compileTrawpawl(
-    source: str, cells: int = 128, maxvaluepercell: int = 127, slient: bool = False
+    source: str, cells: int = 128, maxvaluepercell: int = 127, silent: bool = False
 ) -> str:
     col = 0
     out = ""
@@ -36,7 +36,7 @@ def compileTrawpawl(
                     code,
                     executionMethod=Tem.storeInResult,
                     quickMode=True,
-                    slientMode=slient,
+                    silentMode=silent,
                 )
 
                 if result.status == 1:
