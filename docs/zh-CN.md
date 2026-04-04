@@ -6,7 +6,7 @@
 
 ### Python
 
-版本: 8.5
+版本: 8.5.1
 
 #### 用我们的命令行
 
@@ -90,10 +90,13 @@ result = executor.execute(
     executionMethod=trawpaw.components.Tem.printManually,
 
     # 快速模式，默认值为False
-    # 这个模式启用之之后, Trawpaw将不支持
+    # 这个模式启用之后, Trawpaw将不支持
     # - 等待
     # - 获取输入
     quickMode=False
+
+    # 静默模式，默认值为False
+    # 这个模式启用之后，Trawpaw将会忽略所有警告
 );
 ```
 

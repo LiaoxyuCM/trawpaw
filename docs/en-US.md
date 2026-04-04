@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 8.5
+Version: 8.5.1
 
 #### Use our cli
 
@@ -94,10 +94,14 @@ result = executor.execute(
     executionMethod=trawpaw.components.Tem.printManually,
 
     # Quick mode (default value is False)
-    # If enabled the simple mode, Trawpaw won't support
+    # If enabled, Trawpaw won't support
     # - Waiting
     # - Getting input
-    quickMode=False
+    quickMode=False,
+
+    # Silent mode (default value is False)
+    # If enabled, Trawpaw will ignore all warnings
+    slientMode=False
 );
 ```
 

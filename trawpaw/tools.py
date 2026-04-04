@@ -6,7 +6,9 @@ from . import Trawpaw
 from .components import Tem
 
 
-def compileTrawpawl(source: str, cells: int = 128, maxvaluepercell: int = 127) -> str:
+def compileTrawpawl(
+    source: str, cells: int = 128, maxvaluepercell: int = 127, slient: bool = False
+) -> str:
     col = 0
     out = ""
     objs: dict[str, Trawpaw] = {}
@@ -31,7 +33,10 @@ def compileTrawpawl(source: str, cells: int = 128, maxvaluepercell: int = 127) -
                 col += 1
 
                 result = objs[name].execute(
-                    code, executionMethod=Tem.storeInResult, quickMode=True
+                    code,
+                    executionMethod=Tem.storeInResult,
+                    quickMode=True,
+                    slientMode=slient,
                 )
 
                 if result.status == 1:

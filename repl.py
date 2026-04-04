@@ -10,6 +10,7 @@ def main():
         from prompt_toolkit.history import FileHistory
         import colorama
         import pydoc
+        import warnings
 
         colorama.init(convert=True)
         Fore = colorama.Fore
@@ -82,6 +83,7 @@ def main():
             default="utf-8",
             help="Assign charset to read file.",
         )
+        parser.add_argument("--slient", "-s", action="store_true", help="Slient mode")
 
         args: Namespace = parser.parse_args()
         trawpaw_executor: Trawpaw
@@ -95,6 +97,10 @@ def main():
             pydoc.pager(DOCUMENT)  # type: ignore
             sys.exit(0)
         elif args.trawpawl:
+            if (args.waste or args.waste_preview) and (not args.slient):
+                warnings.warn(
+                    "Ignoring --waste or --waste_preview because enabled --trawpawl"
+                )
             if not args.file:
                 parser.error("Filepath is required when enabled --trawpawl")
             else:
@@ -126,6 +132,7 @@ def main():
                                         current_content,
                                         cells=args.cells,
                                         maxvaluepercell=args.maxvaluepercell,
+                                        slient=args.slient,
                                     )
 
                                     with open(
@@ -218,18 +225,24 @@ def main():
                 code = prompt("[c:0 v:0] ", history=histories)
             while True:
                 if args.waste_preview:
-                    trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
+                    trawpaw_result = trawpaw_executor.runWastePreview(
+                        code, "a", slientMode=args.slient
+                    )
                 elif args.waste:
-                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                    trawpaw_result = trawpaw_executor.runWaste(
+                        code, "a", slientMode=args.slient
+                    )
                 elif args.brainfuck:
-                    trawpaw_result = trawpaw_executor.runBrainfk(code)
+                    trawpaw_result = trawpaw_executor.runBrainfk(
+                        code, slientMode=args.slient
+                    )
                 else:
-                    trawpaw_result = trawpaw_executor.execute(code)
+                    trawpaw_result = trawpaw_executor.execute(
+                        code, slientMode=args.slient
+                    )
                 print(end="\n")
                 if trawpaw_result.status == 1:
                     print(trawpaw_result.message)
-                # else:
-                #     print(getattr(trawpaw_result, "result", ""))
                 if args.waste:
                     code = prompt(
                         f"[waste c:{trawpaw_result.cursor}] ", history=histories

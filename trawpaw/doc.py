@@ -1,4 +1,21 @@
-VERSION: str = "8.5"
+VERSION: str = "8.5.1"
+
+CREDITS: str = """
+--------THANKS TO--------
+Waste & Waste Preview
+  Made by: ChenQingMua, MoKing Studio
+
+Brainf**k
+  Made by: Urban
+
+Python
+  Owned by: The Python Software Foundation
+
+And more
+
+-FOR-PROVIDING-SUPPORTS--
+
+"""
 
 DOCUMENT = r"""
 REQUIREMENT:
