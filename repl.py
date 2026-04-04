@@ -111,13 +111,13 @@ def main():
 
                 print(f"Listening {args.file}")
 
-                def watch_file_content(file_path, interval=1):
+                def watch_file_content(file_path: str, interval: float = 1):
                     if not os.path.exists(file_path):
                         print(f"File not exists: {file_path}")
                         return
 
                     try:
-                        with open(file_path, "rb", encoding=args.charset) as f:
+                        with open(file_path, "r", encoding=args.charset) as f:
                             last_content = f.read()
 
                             while True:
