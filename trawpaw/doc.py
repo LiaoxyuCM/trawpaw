@@ -1,4 +1,4 @@
-VERSION: str = "8.6.2"
+VERSION: str = "8.6.2_1"
 
 CREDITS: str = """
 -------THANKS-TO--------

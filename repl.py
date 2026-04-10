@@ -8,6 +8,7 @@ def main():
         from argparse import ArgumentParser, RawTextHelpFormatter, Namespace, SUPPRESS
         from prompt_toolkit import prompt
         from prompt_toolkit.history import FileHistory
+        from pathlib import Path
         import colorama
         import pydoc
         import warnings
@@ -95,13 +96,13 @@ def main():
             print(f"ERR: {e}")
             sys.exit(1)
 
-        if os.path.exists("./.tphistories"):
+        if os.path.exists(Path(__file__).resolve().parent / ".tphistories"):
             print(
                 ".tphistories found, do you want to rename it to .tphistory?\nIf you don't rename it, the REPL will automatically exit."
             )
             getuserchoice = prompt("[Y/n] ")
             if getuserchoice.lower() in ["y", "yes", ""]:
-                if os.path.exists("./.tphistory"):
+                if os.path.exists(Path(__file__).resolve().parent / ".tphistory"):
                     print(
                         ".tphistory already exists, cannot rename .tphistories to .tphistory.\nPlease backup and remove .tphistory first."
                     )
