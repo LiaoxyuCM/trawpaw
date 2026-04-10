@@ -5,12 +5,13 @@ def main():
     try:
         from trawpaw import Trawpaw
         from trawpaw.doc import VERSION, DOCUMENT
-        from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
+        from argparse import ArgumentParser, RawTextHelpFormatter, Namespace, SUPPRESS
         from prompt_toolkit import prompt
         from prompt_toolkit.history import FileHistory
         import colorama
         import pydoc
         import warnings
+        import os
 
         colorama.init(convert=True)
         Fore = colorama.Fore
@@ -71,11 +72,12 @@ def main():
             "--brainfuck", "-bf", action="store_true", help="Run Brainfuck code"
         )
         running_method.add_argument(
-            "--nohistories",
+            "--nohistory",
             "-nh",
             action="store_true",
-            help="Tell REPL do not use histories",
+            help="Tell REPL do not use history",
         )
+        parser.add_argument("--nohistories", action="store_true", help=SUPPRESS)
         parser.add_argument(
             "--charset",
             "-c",
@@ -93,6 +95,21 @@ def main():
             print(f"ERR: {e}")
             sys.exit(1)
 
+        if os.path.exists("./.tphistories"):
+            print(
+                ".tphistories found, do you want to rename it to .tphistory?\nIf you don't rename it, the REPL will automatically exit."
+            )
+            getuserchoice = prompt("[Y/n] ")
+            if getuserchoice.lower() in ["y", "yes", ""]:
+                if os.path.exists("./.tphistory"):
+                    print(
+                        ".tphistory already exists, cannot rename .tphistories to .tphistory.\nPlease backup and remove .tphistory first."
+                    )
+                else:
+                    os.rename("./.tphistories", "./.tphistory")
+            else:
+                sys.exit(1)
+
         if args.usage:
             pydoc.pager(DOCUMENT)  # type: ignore
             sys.exit(0)
@@ -104,7 +121,6 @@ def main():
             if not args.file:
                 parser.error("Filepath is required when enabled --trawpawl")
             else:
-                import os
                 import time
                 from trawpaw.tools import compileTrawpawl
                 from math import floor
@@ -190,10 +206,16 @@ def main():
                 print("No permission to read file. You may forgot to chmod it.")
                 sys.exit(1)
         else:
-            if args.nohistories:
-                histories = None
+            if args.nohistory:
+                history = None
+            elif args.nohistories:
+                warnings.warn(
+                    "Deprecated: --nohistories is deprecated, use --nohistory instead",
+                    DeprecationWarning,
+                )
+                history = None
             else:
-                histories = FileHistory(".tphistories")
+                history = FileHistory(".tphistory")
 
             if args.waste:
                 print(
@@ -216,13 +238,13 @@ def main():
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
                 if args.waste:
-                    code = prompt("[waste c:0] ", history=histories)
+                    code = prompt("[waste c:0] ", history=history)
                 else:
-                    code = prompt("[waste] ", history=histories)
+                    code = prompt("[waste] ", history=history)
             elif args.brainfuck:
-                code = prompt("[bf c:0] ", history=histories)
+                code = prompt("[bf c:0] ", history=history)
             else:
-                code = prompt("[c:0 v:0] ", history=histories)
+                code = prompt("[c:0 v:0] ", history=history)
             while True:
                 if args.waste_preview:
                     trawpaw_result = trawpaw_executor.runWastePreview(
@@ -245,16 +267,16 @@ def main():
                     print(trawpaw_result.message)
                 if args.waste:
                     code = prompt(
-                        f"[waste c:{trawpaw_result.cursor}] ", history=histories
+                        f"[waste c:{trawpaw_result.cursor}] ", history=history
                     )
                 elif args.waste_preview:
-                    code = prompt("[waste] ", history=histories)
+                    code = prompt("[waste] ", history=history)
                 elif args.brainfuck:
-                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=histories)
+                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=history)
                 else:
                     code = prompt(
                         f"[c:{trawpaw_result.cursor} v:{trawpaw_result.datalistlength}] ",
-                        history=histories,
+                        history=history,
                     )
     except KeyboardInterrupt:
         sys.exit(0)

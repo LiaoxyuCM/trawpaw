@@ -1,9 +1,9 @@
-VERSION: str = "8.6.1_1"
+VERSION: str = "8.6.2"
 
 CREDITS: str = """
 -------THANKS-TO--------
 Waste & Waste Preview
-  Made by: ChenQingMua, MoKing Studio
+  Made by: HuaYuMoMo (ChenQingMua)
 
 Brainf**k
   Author: Urban

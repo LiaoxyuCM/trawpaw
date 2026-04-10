@@ -8,7 +8,7 @@ At least it is a Turing complete.
 
 ### Python
 
-Version: 8.6.1_1
+Version: 8.6.2
 
 #### Use our cli
 
@@ -34,7 +34,9 @@ of this pointer is 0 and `v:0` means there are 0 variables defined.
 This REPL will generate file `.tphistories` since v7.2,
 if you want to clear your REPL history \(since v7.2\), just delete the file
 
-If you do not want to generate that file, just use `--nohistories`.
+If you do not want to generate that file, just use `--nohistory`.
+
+**DEPRECATED**: `--nohistories` is deprecated since v8.6.2
 
 #### Execute in-python-program
 
