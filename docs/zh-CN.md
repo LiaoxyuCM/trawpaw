@@ -16,6 +16,9 @@
 从 [这里](https://github.com/LiaoxyuCM/trawpaw/releases) 下载最新的发行版，
 解压他. 你可以在你终端里跑下面的命令:
 
+注意：**不要解压到当前目录,
+请先创建一个新文件夹!!!**
+
 ```sh
 ##### WINDOWS, MACOS 或 LINUX #####
 trawpaw # 打开 Trawpaw 交互式环境

@@ -18,6 +18,9 @@ to execute Trawpaw code.
 Download the latest release from [our releases](https://github.com/LiaoxyuCM/trawpaw/releases)
 and unzip it. Then you can use the following commands in your terminal:
 
+Note: **Do not unzip it to the current directory,
+Please create a new folder first!!!**
+
 ```sh
 ##### WINDOWS, MACOS OR LINUX #####
 trawpaw # To open Trawpaw REPL
