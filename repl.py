@@ -106,8 +106,12 @@ def main():
                     print(
                         ".tphistory already exists, cannot rename .tphistories to .tphistory.\nPlease backup and remove .tphistory first."
                     )
+                    sys.exit(1)
                 else:
-                    os.rename("./.tphistories", "./.tphistory")
+                    os.rename(
+                        Path(__file__).resolve().parent / ".tphistories",
+                        Path(__file__).resolve().parent / ".tphistory",
+                    )
             else:
                 sys.exit(1)
 
