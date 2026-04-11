@@ -28,7 +28,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile repl.py -n trawpaw --hidden-import=prompt_toolkit --hidden-import=colorama -D
+          pyinstaller --onefile repl.py -n trawpaw --hidden-import=prompt_toolkit --hidden-import=colorama
 
       - name: Upload Executable
         uses: actions/upload-artifact@v6
