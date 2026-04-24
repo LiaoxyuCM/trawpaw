@@ -63,6 +63,12 @@ def main():
             required=False,
             help="Enable trawpawl and set the file to output",
         )
+        parser.add_argument(
+            "--watch",
+            "-w",
+            action="store_true",
+            help="Watch the file and re-run code when file changed (only works when enabled --trawpawl)",
+        )
         running_method.add_argument(
             "--waste_preview", action="store_true", help="Run waste (preview) code"
         )
@@ -130,19 +136,20 @@ def main():
                 from trawpaw.tools import compileTrawpawl
                 from math import floor
 
-                print(f"Listening {args.file}")
+                if args.watch:
+                    print(f"Listening {args.file}")
 
-                def watch_file_content(file_path: str, interval: float = 1):
-                    if not os.path.exists(file_path):
-                        print(f"File not exists: {file_path}")
-                        return
+                if not os.path.exists(args.file):
+                    print(f"File not exists: {args.file}")
+                    return
 
-                    try:
-                        with open(file_path, "r", encoding=args.charset) as f:
-                            last_content = f.read()
+                try:
+                    with open(args.file, "r", encoding=args.charset) as f:
+                        last_content = f.read()
 
+                        if args.watch:
                             while True:
-                                with open(file_path, "r", encoding=args.charset) as f:
+                                with open(args.file, "r", encoding=args.charset) as f:
                                     current_content = f.read()
 
                                 if current_content != last_content:
@@ -165,23 +172,34 @@ def main():
                                         )
                                     last_content = current_content
 
-                                time.sleep(interval)
-                    except FileNotFoundError:
-                        print("Cannot parse this file.")
-                        sys.exit(1)
-                    except LookupError:
-                        print("Unknown charset.")
-                        sys.exit(1)
-                    except PermissionError:
-                        print(
-                            "No permission to read or write file. You may forgot to chmod it."
-                        )
-                        sys.exit(1)
-                    except KeyboardInterrupt:
-                        sys.exit(0)
+                                time.sleep(1)
+                        else:
+                            with open(args.file, "r", encoding=args.charset) as f:
+                                current_content = f.read()
+                                result = compileTrawpawl(
+                                    current_content,
+                                    cells=args.cells,
+                                    maxvaluepercell=args.maxvaluepercell,
+                                    silent=args.silent,
+                                )
+                                with open(
+                                    args.trawpawl, "w", encoding=args.charset
+                                ) as f:
+                                    f.write(result)
 
-                watch_file_content(args.file)
-
+                except FileNotFoundError:
+                    print("Cannot parse this file.")
+                    sys.exit(1)
+                except LookupError:
+                    print("Unknown charset.")
+                    sys.exit(1)
+                except PermissionError:
+                    print(
+                        "No permission to read or write file. You may forgot to chmod it."
+                    )
+                    sys.exit(1)
+                except KeyboardInterrupt:
+                    sys.exit(0)
         elif args.file:
             try:
                 with open(args.file, "r", encoding=args.charset) as f:
