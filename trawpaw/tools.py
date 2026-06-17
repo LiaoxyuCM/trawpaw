@@ -92,7 +92,7 @@ def executeResultExpression(resultExpression: str) -> None:
 
 def compileResultExpression(
     resultExpr: str,
-    targetLang: Literal["python"] | Literal["javascript"] = "python",
+    targetLang: Literal["python"] | Literal["javascript-browser"] = "python",
     javascriptElemName: str = "default",
 ) -> str:
     col = 0
@@ -143,7 +143,7 @@ def compileResultExpression(
         except IndexError:
             raise SyntaxError("Invalid result expression")
 
-    elif targetLang == "javascript":
+    elif targetLang == "javascript-browser":
         try:
             out = ""
             code = ""

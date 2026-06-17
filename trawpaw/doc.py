@@ -1,22 +1,15 @@
-VERSION: str = "8.7"
+VERSION: str = "8.7_1"
 
 CREDITS: str = """
 -------THANKS-TO--------
 Waste & Waste Preview
-  Made by: HuaYuMoMo (ChenQingMua)
-
 Brainf**k
-  Author: Urban
-
 Python
-  Owned by: The Python Software Foundation
 
 And more
 
--FOR-PROVIDING-SUPPORTS-
 
 """
-
 DOCUMENT = r"""
 REQUIREMENT:
 

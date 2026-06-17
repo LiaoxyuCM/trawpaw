@@ -54,6 +54,18 @@ class TrawpawLinkCell:
     relates_to = TrawpawDatatypes.LinkCell
 
 
+# Module string.[un]escape
+htmlEscape = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "©": "&copy;",
+    "®": "&reg;",
+    '"': "&quot;",
+    " ": "&nbsp;",
+    "\n": "<br>",
+}
+
 # aliases
 
 Tem = TrawpawExecutionMethod

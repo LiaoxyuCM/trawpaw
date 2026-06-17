@@ -253,10 +253,7 @@ def main():
             else:
                 print("Run `trawpaw --usage` for more information")
 
-            if sys.platform == "darwin":
-                print("Press Cmd+C or Cmd+D to exit.")
-            else:
-                print("Press Ctrl+C or Ctrl+D to exit.")
+            print("Press Ctrl/Cmd+C or Ctrl/Cmd+D to exit.")
 
             if args.waste or args.waste_preview:
                 trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
@@ -274,9 +271,7 @@ def main():
                         code, "a", silentMode=args.silent
                     )
                 elif args.waste:
-                    trawpaw_result = trawpaw_executor.runWaste(
-                        code, "a", silentMode=args.silent
-                    )
+                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
                 elif args.brainfuck:
                     trawpaw_result = trawpaw_executor.runBrainfk(
                         code, silentMode=args.silent

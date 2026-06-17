@@ -2,7 +2,7 @@ from random import randint
 from time import sleep
 from prompt_toolkit import prompt
 from typing import Callable
-from .components import Tem, Tdt, Tfun, Thmr, Tlc, Trst
+from .components import Tem, Tdt, Tfun, Thmr, Tlc, Trst, htmlEscape
 import sys
 import os
 import urllib.parse
@@ -198,7 +198,6 @@ class Trawpaw:
         saveto: str,
         startAtCol: int = 0,
         executionMethod: Tem = Tem.printManually,
-        silentMode: bool = False,
     ) -> Trst:
         if len(self.cells) < 10:
             return self._gErr(
@@ -1000,7 +999,6 @@ class Trawpaw:
                                                     "startAtCol"
                                                 ],
                                                 executionMethod=executionMethod,
-                                                silentMode=silentMode,
                                             )
                                             if function_result.status == 1:
                                                 return self._gErr(
@@ -1337,22 +1335,12 @@ class Trawpaw:
                                     f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.escape":
-                            escape = {
-                                "&": "&amp;",
-                                "<": "&lt;",
-                                ">": "&gt;",
-                                "©": "&copy;",
-                                "®": "&reg;",
-                                '"': "&quot;",
-                                " ": "&nbsp;",
-                                "\n": "<br>",
-                            }
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
                                     new_string = self.datalist[varname]["value"]
-                                    for k, v in escape.items():
+                                    for k, v in htmlEscape.items():
                                         new_string = new_string.replace(k, v)
                                     self.datalist[varname]["value"] = new_string
                                 else:
@@ -1364,22 +1352,12 @@ class Trawpaw:
                                     f"Data '{varname}' is not initialized at col {col}."
                                 )
                         elif dofunction == "string.unescape":
-                            escape = {
-                                "&": "&amp;",
-                                "<": "&lt;",
-                                ">": "&gt;",
-                                "©": "&copy;",
-                                "®": "&reg;",
-                                '"': "&quot;",
-                                " ": "&nbsp;",
-                                "\n": "<br>",
-                            }
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
                                     new_string = self.datalist[varname]["value"]
-                                    for k, v in list(escape.items())[::-1]:
+                                    for k, v in list(htmlEscape.items())[::-1]:
                                         new_string = new_string.replace(v, k)
                                     self.datalist[varname]["value"] = new_string
                                 else:

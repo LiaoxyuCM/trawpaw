@@ -1,6 +1,6 @@
 # Trawpaw
 
-请支持陈青陌的WasteLanguage（如果你只是想体验waste）
+请支持WasteLanguage（如果你只是想体验waste）
 
 [下载正版WasteLang](https://github.com/ChenQingMua/WasteLanguage-Professional)
 

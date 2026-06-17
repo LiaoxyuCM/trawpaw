@@ -1,5 +1,5 @@
 from trawpaw import Trawpaw
-from trawpaw.components import Tdt, Thmr, Tfun
+from trawpaw.components import Tdt, Thmr, Tfun, htmlEscape
 import urllib.parse
 import base64
 import hashlib
@@ -114,19 +114,6 @@ def handle_string_decodeuri(arg: str):
     return urllib.parse.unquote(arg)
 
 
-##### STRING.ESCAPE AND STRING.UNESCAPE #####
-
-escape = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "©": "&copy;",
-    "®": "&reg;",
-    '"': "&quot;",
-    " ": "&nbsp;",
-    "\n": "<br>",
-}
-
 ### STRING.ESCAPE ###
 
 
@@ -136,7 +123,7 @@ escape = {
     handleResult=Thmr.assignToVar,
 )
 def handle_string_escape(arg: str):
-    for char, esc in escape.items():
+    for char, esc in htmlEscape.items():
         arg = arg.replace(char, esc)
     return arg
 
@@ -150,7 +137,7 @@ def handle_string_escape(arg: str):
     handleResult=Thmr.assignToVar,
 )
 def handle_string_unescape(arg: str):
-    for char, esc in list(escape.items())[::-1]:
+    for char, esc in list(htmlEscape.items())[::-1]:
         arg = arg.replace(esc, char)
     return arg
 
