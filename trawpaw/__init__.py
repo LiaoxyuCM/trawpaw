@@ -2,12 +2,9 @@ from random import randint
 from time import sleep
 from prompt_toolkit import prompt
 from typing import Callable
-from .components import Tem, Tdt, Tfun, Thmr, Tlc, Trst, htmlEscape
+from .components import Tem, Tdt, Tfun, Thmr, Tlc, Trst, htmlEscape, methods, methodsInt
 import sys
 import os
-import urllib.parse
-import hashlib
-import base64
 import warnings
 ############# MAIN #############
 
@@ -43,7 +40,7 @@ class Trawpaw:
         return Trst(
             {
                 "status": 1,
-                "message": f"ERR: {msg} at col {col if isinstance(col, int) else ''}",
+                "message": f"ERR: {msg}{f' at col {col}' if isinstance(col, int) else ''}",
                 "cursor": self.cursor,
                 "datalistlength": len(self.datalist),
             }
@@ -60,7 +57,7 @@ class Trawpaw:
         availableDatatypes: Tdt,
         handleResult: Thmr = Thmr.printManually,
     ) -> Callable:
-        def decorator(func: Callable):
+        def decorator(func: Callable) -> None:
             self.customModules[name] = {
                 "handleResult": handleResult,
                 "function": func,
@@ -659,42 +656,45 @@ class Trawpaw:
                         special += 1
                     case "@":
                         col += 1
-                        if code[col - startAtCol].upper() == "V":
-                            if executionMethod == Tem.printManually:
-                                print(str(self.datalist), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + "d".join(list(str(self.datalist)))
+                        try:
+                            if code[col - startAtCol].upper() == "V":
+                                if executionMethod == Tem.printManually:
+                                    print(str(self.datalist), end="")
+                                elif executionMethod == Tem.storeInResultExpression:
+                                    result += "d" + "d".join(list(str(self.datalist)))
+                                else:
+                                    result += str(self.datalist)
+                            elif code[col - startAtCol].upper() == "C":
+                                if executionMethod == Tem.printManually:
+                                    print(str(self.cursor), end="")
+                                elif executionMethod == Tem.storeInResultExpression:
+                                    result += "d" + "d".join(list(str(self.cursor)))
+                                else:
+                                    result += str(self.cursor)
+                            elif code[col - startAtCol].upper() == "M":
+                                celldata = (
+                                    str(len(self.cells))
+                                    + " "
+                                    + str(self.maxvaluepercell - 1)
+                                )
+                                if executionMethod == Tem.printManually:
+                                    print(str(celldata), end="")
+                                elif executionMethod == Tem.storeInResultExpression:
+                                    result += "d" + "d".join(list(str(celldata)))
+                                else:
+                                    result += str(celldata)
+                            elif code[col - startAtCol].upper() == "B":
+                                if executionMethod == Tem.printManually:
+                                    print(str(bracketlist), end="")
+                                elif executionMethod == Tem.storeInResultExpression:
+                                    result += "d" + "d".join(list(str(bracketlist)))
+                                else:
+                                    result += str(bracketlist)
                             else:
-                                result += str(self.datalist)
-                        elif code[col - startAtCol].upper() == "C":
-                            if executionMethod == Tem.printManually:
-                                print(str(self.cursor), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + "d".join(list(str(self.cursor)))
-                            else:
-                                result += str(self.cursor)
-                        elif code[col - startAtCol].upper() == "M":
-                            celldata = (
-                                str(len(self.cells))
-                                + " "
-                                + str(self.maxvaluepercell - 1)
-                            )
-                            if executionMethod == Tem.printManually:
-                                print(str(celldata), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + "d".join(list(str(celldata)))
-                            else:
-                                result += str(celldata)
-                        elif code[col - startAtCol].upper() == "B":
-                            if executionMethod == Tem.printManually:
-                                print(str(bracketlist), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + "d".join(list(str(bracketlist)))
-                            else:
-                                result += str(bracketlist)
-                        else:
-                            return self._gErr("Invalid debug mark")
-                        special = 0
+                                return self._gErr("Invalid debug mark", col=col)
+                            special = 0
+                        except IndexError:
+                            return self._gErr("Impl didn't match a debug mark")
                     case "[":
                         if bool(special):
                             if randint(0, 1):
@@ -1291,15 +1291,11 @@ class Trawpaw:
                                     f"Data '{varname}' is not initialized", col=col
                                 )
                         elif dofunction in ["string.encodeuri", "string.decodeuri"]:
-                            setMtd: dict[str, Callable] = {
-                                "string.encodeuri": urllib.parse.quote,
-                                "string.decodeuri": urllib.parse.unquote,
-                            }
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
-                                    newString = setMtd[dofunction](
+                                    newString = methods["urlparse"][dofunction](
                                         self.datalist[varname]["value"]
                                     )
                                     self.datalist[varname]["value"] = newString
@@ -1347,21 +1343,13 @@ class Trawpaw:
                                 )
 
                         elif dofunction.startswith("hash."):
-                            hashMtd: dict[str, Callable] = {
-                                "hash.md5": hashlib.md5,
-                                "hash.sha1": hashlib.sha1,
-                                "hash.sha224": hashlib.sha224,
-                                "hash.sha256": hashlib.sha256,
-                                "hash.sha384": hashlib.sha384,
-                                "hash.sha512": hashlib.sha512,
-                            }
                             col += 1
                             varname = code[col - startAtCol]
 
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
                                     try:
-                                        newString = hashMtd[dofunction](
+                                        newString = methods["hash"][dofunction](
                                             self.datalist[varname]["value"].encode()
                                         ).hexdigest()
                                     except KeyError:
@@ -1378,16 +1366,12 @@ class Trawpaw:
                                     f"Data '{varname}' is not initialized", col=col
                                 )
                         elif dofunction.startswith("base64."):
-                            base64Mtd: dict[str, Callable] = {
-                                "base64.encode": base64.b64encode,
-                                "base64.decode": base64.b64decode,
-                            }
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
                                     try:
-                                        newString = base64Mtd[dofunction](
+                                        newString = methods["base64"][dofunction](
                                             self.datalist[varname]["value"].encode()
                                         ).decode()
                                     except KeyError:
@@ -1407,10 +1391,6 @@ class Trawpaw:
                             "string.offset.forward",
                             "string.offset.backward",
                         ]:
-                            offsetMtd: dict[str, int] = {
-                                "string.offset.forward": 1,
-                                "string.offset.backward": -1,
-                            }
                             col += 1
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
@@ -1418,7 +1398,7 @@ class Trawpaw:
                                     newString = ""
                                     for char in self.datalist[varname]["value"]:
                                         newString += chr(
-                                            ord(char) + offsetMtd[dofunction]
+                                            ord(char) + methodsInt["offset"][dofunction]
                                         )
                                     self.datalist[varname]["value"] = newString
                                 else:
@@ -1535,6 +1515,24 @@ class Trawpaw:
                                 else:
                                     return self._gErr(
                                         "Variable must be a number or function", col=col
+                                    )
+                            else:
+                                return self._gErr(
+                                    f"Data '{varname}' is not initialized", col=col
+                                )
+                        elif dofunction == "asnumber":
+                            col += 1
+                            varname = code[col - startAtCol]
+                            if self.datalist.get(varname):
+                                if self.datalist[varname]["type"] == "linkcell":
+                                    self.datalist[varname]["type"] = "number"
+                                    self.datalist[varname]["value"] = self.cells[
+                                        self.datalist[varname]["value"]
+                                    ]
+                                else:
+                                    return self._gErr(
+                                        "Variable must be a reference of cell (linkcell)",
+                                        col=col,
                                     )
                             else:
                                 return self._gErr(

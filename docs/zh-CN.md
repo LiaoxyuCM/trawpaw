@@ -16,8 +16,9 @@
 从 [这里](https://github.com/LiaoxyuCM/trawpaw/releases) 下载最新的发行版，
 解压他. 你可以在你终端里跑下面的命令:
 
-注意：**不要解压到当前目录,
-请先创建一个新文件夹!!!**
+> [!IMPORTANT]
+> 不要解压到当前目录,
+> 请先创建一个新文件夹!!!
 
 ```sh
 ##### WINDOWS, MACOS 或 LINUX #####
@@ -28,16 +29,16 @@ trawpaw --version # 显示trawpaw版本
 trawpaw --trawpawl OUT_FILE FILE_TO_LISTEN # 调用 trawpawl
 trawpaw filepath # 运行文件里面的代码
 ```
+> [!TIP]
+> 打开交互式环境后, 你会看到 `[c:0 v:0]`. `c:0` 意味着当前指针的地址是0，
+> `v:0` 意味着0个（没有）变量被定义.
 
-打开交互式环境后, 你会看到 `[c:0 v:0]`. `c:0` 意味着当前指针的地址是0，
-`v:0` 意味着0个（没有）变量被定义.
-
-在v7.2及以后，交互式环境会生成 `.tphistories`
+在v7.2及以后，交互式环境会生成 `.tphistory` \(也可能是`.tphistories`\)
 如果你想清除交互式环境的历史记录 \(v7.2及以后\), 删掉这个文件就行了
-
 如果你不想生成那个文件, 请使用 `--nohistory`.
 
-**已废弃**: 从v8.6.2开始, `--nohistories`已废弃, 将以`--nohistory`取而代之.
+> [!NOTE]
+> **已废弃**: 从v8.6.2开始, `--nohistories`已废弃, 将以`--nohistory`取而代之.
 
 #### 在你的python程序中执行
 
@@ -139,8 +140,9 @@ else:
 
 ### JavaScript (前端)
 
-注意: **我们已对Trawpaw JavaScript终止支持
-请使用Trawpaw python**
+> [!IMPORTANT]
+> 我们已对Trawpaw JavaScript终止支持
+> 请使用Trawpaw python
 
 版本: 1.1.1
 

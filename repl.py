@@ -22,7 +22,7 @@ def main():
             description="Trawpaw v" + VERSION,
             formatter_class=RawTextHelpFormatter,
         )
-        running_method = parser.add_mutually_exclusive_group(required=False)
+        runningMethod = parser.add_mutually_exclusive_group(required=False)
         parser.add_argument(
             "--usage",
             "-u",
@@ -69,16 +69,16 @@ def main():
             action="store_true",
             help="Watch the file and re-run code when file changed (only works when enabled --trawpawl)",
         )
-        running_method.add_argument(
+        runningMethod.add_argument(
             "--waste_preview", action="store_true", help="Run waste (preview) code"
         )
-        running_method.add_argument(
+        runningMethod.add_argument(
             "--waste", action="store_true", help="Run waste code"
         )
-        running_method.add_argument(
+        runningMethod.add_argument(
             "--brainfuck", "-bf", action="store_true", help="Run Brainfuck code"
         )
-        running_method.add_argument(
+        runningMethod.add_argument(
             "--nohistory",
             "-nh",
             action="store_true",
@@ -95,9 +95,9 @@ def main():
         parser.add_argument("--silent", "-s", action="store_true", help="silent mode")
 
         args: Namespace = parser.parse_args()
-        trawpaw_executor: Trawpaw
+        trawpawExecutor: Trawpaw
         try:
-            trawpaw_executor = Trawpaw(args.cells, args.maxvaluepercell)
+            trawpawExecutor = Trawpaw(args.cells, args.maxvaluepercell)
         except AssertionError as e:
             print(f"ERR: {e}")
             sys.exit(1)
@@ -153,7 +153,6 @@ def main():
                                     current_content = f.read()
 
                                 if current_content != last_content:
-                                    print("File changed, compiling...")
                                     start_time = time.time()
 
                                     result = compileTrawpawl(
@@ -168,7 +167,7 @@ def main():
                                     ) as f:
                                         f.write(result)
                                         print(
-                                            f"Ok. Took {floor((time.time() - start_time) * 100000) / 100}ms"
+                                            f"Compile last file change took {floor((time.time() - start_time) * 100000) / 100}ms"
                                         )
                                     last_content = current_content
 
@@ -205,18 +204,18 @@ def main():
                 with open(args.file, "r", encoding=args.charset) as f:
                     code: str = f.read()
                     if args.waste_preview:
-                        trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                        trawpaw_result = trawpaw_executor.runWastePreview(code, "a")
+                        trawpawExecutor.datalist["a"] = {"type": "number", "value": 0}
+                        trawpawResult = trawpawExecutor.runWastePreview(code, "a")
                     elif args.waste:
-                        trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
-                        trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                        trawpawExecutor.datalist["a"] = {"type": "number", "value": 0}
+                        trawpawResult = trawpawExecutor.runWaste(code, "a")
                     elif args.brainfuck:
-                        trawpaw_result = trawpaw_executor.runBrainfk(code)
+                        trawpawResult = trawpawExecutor.runBrainfk(code)
                     else:
-                        trawpaw_result = trawpaw_executor.execute(code)
+                        trawpawResult = trawpawExecutor.execute(code)
                     print(end="\n")
-                    if trawpaw_result.status == 1:
-                        print(Fore.RED + trawpaw_result.message + Fore.RESET)
+                    if trawpawResult.status == 1:
+                        print(Fore.RED + trawpawResult.message + Fore.RESET)
                     f.close()
                 sys.exit(0)
             except FileNotFoundError:
@@ -256,7 +255,7 @@ def main():
             print("Press Ctrl/Cmd+C or Ctrl/Cmd+D to exit.")
 
             if args.waste or args.waste_preview:
-                trawpaw_executor.datalist["a"] = {"type": "number", "value": 0}
+                trawpawExecutor.datalist["a"] = {"type": "number", "value": 0}
                 if args.waste:
                     code = prompt("[waste c:0] ", history=history)
                 else:
@@ -267,33 +266,31 @@ def main():
                 code = prompt("[c:0 v:0] ", history=history)
             while True:
                 if args.waste_preview:
-                    trawpaw_result = trawpaw_executor.runWastePreview(
+                    trawpawResult = trawpawExecutor.runWastePreview(
                         code, "a", silentMode=args.silent
                     )
                 elif args.waste:
-                    trawpaw_result = trawpaw_executor.runWaste(code, "a")
+                    trawpawResult = trawpawExecutor.runWaste(code, "a")
                 elif args.brainfuck:
-                    trawpaw_result = trawpaw_executor.runBrainfk(
+                    trawpawResult = trawpawExecutor.runBrainfk(
                         code, silentMode=args.silent
                     )
                 else:
-                    trawpaw_result = trawpaw_executor.execute(
+                    trawpawResult = trawpawExecutor.execute(
                         code, silentMode=args.silent
                     )
                 print(end="\n")
-                if trawpaw_result.status == 1:
-                    print(trawpaw_result.message)
+                if trawpawResult.status == 1:
+                    print(trawpawResult.message)
                 if args.waste:
-                    code = prompt(
-                        f"[waste c:{trawpaw_result.cursor}] ", history=history
-                    )
+                    code = prompt(f"[waste c:{trawpawResult.cursor}] ", history=history)
                 elif args.waste_preview:
                     code = prompt("[waste] ", history=history)
                 elif args.brainfuck:
-                    code = prompt(f"[bf c:{trawpaw_result.cursor}] ", history=history)
+                    code = prompt(f"[bf c:{trawpawResult.cursor}] ", history=history)
                 else:
                     code = prompt(
-                        f"[c:{trawpaw_result.cursor} v:{trawpaw_result.datalistlength}] ",
+                        f"[c:{trawpawResult.cursor} v:{trawpawResult.datalistlength}] ",
                         history=history,
                     )
     except KeyboardInterrupt:

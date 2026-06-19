@@ -18,8 +18,9 @@ to execute Trawpaw code.
 Download the latest release from [our releases](https://github.com/LiaoxyuCM/trawpaw/releases)
 and unzip it. Then you can use the following commands in your terminal:
 
-Note: **Do not unzip it to the current directory,
-Please create a new folder first!!!**
+> [!IMPORTANT]
+> Do not unzip it to the current directory,
+> Please create a new folder first!!!
 
 ```sh
 ##### WINDOWS, MACOS OR LINUX #####
@@ -31,20 +32,22 @@ trawpaw --trawpawl OUT_FILE FILE_TO_LISTEN # to call trawpawl
 trawpaw filepath # To execute this file
 ```
 
-After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address
-of this pointer is 0 and `v:0` means there are 0 variables defined.
+> [!TIP]
+> After open the REPL, you will see `[c:0 v:0]`. `c:0` means the current address
+> of this pointer is 0 and `v:0` means there are 0 variables defined.
 
-This REPL will generate file `.tphistories` since v7.2,
-if you want to clear your REPL history \(since v7.2\), just delete the file
+This REPL will generate file `.tphistory` \(or `.tphistories`\) since v7.2,
+if you want to clear your REPL history \(since v7.2\), delete the file
+If you do not want to generate that file, use `--nohistory`.
 
-If you do not want to generate that file, just use `--nohistory`.
-
-**DEPRECATED**: `--nohistories` is deprecated since v8.6.2
+> [!NOTE]
+> DEPRECATED: `--nohistories` is deprecated since v8.6.2
 
 #### Execute in-python-program
 
-Notice since 8.0 **Except for `Trawpaw`, other classes moved to `trawpaw.components`.
-Also, `__doc__` moved to `trawpaw.doc.DOCUMENT`, `VERSION` moved to `trawpaw.doc.VERSION`**
+> [!NOTE]
+> Notice since 8.0 **Except for `Trawpaw`, other classes moved to `trawpaw.components`.
+> Also, `__doc__` moved to `trawpaw.doc.DOCUMENT`, `VERSION` moved to `trawpaw.doc.VERSION`**
 
 You need to clone this repository ,
 set up venv \(optional but recommended\)
@@ -144,8 +147,9 @@ with the following keys
 
 ### JavaScript (Front-end)
 
-Notice: **We no longer provide support for Trawpaw JavaScript.
-Please use Trawpaw Python**
+> [!IMPORTANT]
+> We no longer provide support for Trawpaw JavaScript.
+> Please use Trawpaw Python Edition
 
 Version: 1.1.1
 
