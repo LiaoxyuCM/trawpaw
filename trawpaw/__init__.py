@@ -51,6 +51,16 @@ class Trawpaw:
         self.datalist = {}
         self.cursor = 0
 
+    def handleOutput(self, executionMethod: Tem, out: str, result: str) -> str:
+        if executionMethod == Tem.printManually:
+            print(out, end="")
+        elif executionMethod == Tem.storeInResultExpression:
+            result += "d" + "d".join(list(out))
+        else:
+            result += out
+
+        return result
+
     def registerCustomModule(
         self,
         name: str,
@@ -122,12 +132,7 @@ class Trawpaw:
                         else:
                             self.cells[self.cursor] = 0
                 case ".":
-                    if executionMethod == Tem.printManually:
-                        print(chr(self.cells[self.cursor]), end="")
-                    elif executionMethod == Tem.storeInResultExpression:
-                        result += "d" + chr(self.cells[self.cursor])
-                    else:
-                        result += chr(self.cells[self.cursor])
+                    result = self.handleOutput(executionMethod, chr(self.cells[self.cursor]), result)
                 case "[":
                     bracketlist.append(col)
                 case "]":
@@ -251,36 +256,16 @@ class Trawpaw:
                         self.cells[self.cursor] + randint(0, 1)
                     ) % self.maxvaluepercell
                 case "％" | "%":
-                    if executionMethod == Tem.printManually:
-                        print(str(self.cells[self.cursor]), end="")
-                    elif executionMethod == Tem.storeInResultExpression:
-                        out += "d" + "d".join(list(str(self.cells[self.cursor])))
-                    else:
-                        out += str(self.cells[self.cursor])
+                    out = self.handleOutput(executionMethod, str(self.cells[self.cursor]), out)
                 case "＆" | "&":
                     prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
-                        if executionMethod == Tem.printManually:
-                            print(chr(self.cells[self.cursor]), end="")
-                        elif executionMethod == Tem.storeInResultExpression:
-                            out += "d" + chr(self.cells[self.cursor])
-                        else:
-                            out += chr(self.cells[self.cursor])
+                        out = self.handleOutput(executionMethod, chr(self.cells[self.cursor]), out)
                     except Exception:
-                        if executionMethod == Tem.printManually:
-                            print("?", end="")
-                        elif executionMethod == Tem.storeInResultExpression:
-                            out += "d?"
-                        else:
-                            out += "?"
+                        out = self.handleOutput(executionMethod, "?", out)
                 case "：" | ":":
-                    if executionMethod == Tem.printManually:
-                        print("\n", end="")
-                    elif executionMethod == Tem.storeInResultExpression:
-                        out += "d\n"
-                    else:
-                        out += "\n"
+                    out = self.handleOutput(executionMethod, "\n", out)
                 case "！" | "!":
                     return Trst(
                         {
@@ -392,12 +377,7 @@ class Trawpaw:
                     else:
                         out = ""
                 case "，" | ",":
-                    if executionMethod == Tem.printManually:
-                        print(code[col - startAtCol + 1 :], end="")
-                    elif executionMethod == Tem.storeInResultExpression:
-                        out += "d" + "d".join(list(code[col - startAtCol + 1 :]))
-                    else:
-                        out += code[col - startAtCol + 1 :]
+                    out = self.handleOutput(executionMethod, code[col - startAtCol + 1 :], out)
                     break
                 case "＃" | "#":
                     ptr = 0
@@ -410,34 +390,16 @@ class Trawpaw:
                 case "/" | "／":
                     ptr = (ptr // 2) % self.maxvaluepercell
                 case "％" | "%":
-                    if executionMethod == Tem.printManually:
-                        print(str(ptr), end="")
-                    elif executionMethod == Tem.storeInResultExpression:
-                        out += "d" + "d".join(list(str(ptr)))
-                    else:
-                        out += str(ptr)
+                    out = self.handleOutput(executionMethod, str(ptr), out)
                 case "＆" | "&":
                     prompt("Breakpoint reached. Press Enter to continue...")
                 case "．" | ".":
                     try:
-                        if executionMethod == Tem.printManually:
-                            print(chr(ptr), end="")
-                        elif executionMethod == Tem.storeInResultExpression:
-                            out += "d" + chr(ptr)
-                        else:
-                            out += chr(ptr)
+                        out = self.handleOutput(executionMethod, chr(ptr), out)
                     except Exception:
-                        if executionMethod == Tem.printManually:
-                            print("?", end="")
-                        elif executionMethod == Tem.storeInResultExpression:
-                            out += "d?"
-                        else:
-                            out += "?"
+                        out = self.handleOutput(executionMethod, "?", out)
                 case "：" | ":":
-                    if executionMethod == Tem.printManually:
-                        print("\n", end="")
-                        sys.stdout.flush()
-                    out += "\n"
+                    out = self.handleOutput(executionMethod, "\n", out)
                 case "？" | "?":
                     if quickMode:
                         if not silentMode:
@@ -601,21 +563,9 @@ class Trawpaw:
                         special = 0
                     case ".":
                         if special:
-                            if executionMethod == Tem.printManually:
-                                print(str(self.cells[self.cursor]), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + "d".join(
-                                    list(str(self.cells[self.cursor]))
-                                )
-                            else:
-                                result += str(self.cells[self.cursor])
+                            result = self.handleOutput(executionMethod, str(self.cells[self.cursor]), result)
                         else:
-                            if executionMethod == Tem.printManually:
-                                print(chr(self.cells[self.cursor]), end="")
-                            elif executionMethod == Tem.storeInResultExpression:
-                                result += "d" + chr(self.cells[self.cursor])
-                            else:
-                                result += chr(self.cells[self.cursor])
+                            result = self.handleOutput(executionMethod, chr(self.cells[self.cursor]), result)
                         special = 0
                     case "$":
                         dataDefinition = True
@@ -658,38 +608,18 @@ class Trawpaw:
                         col += 1
                         try:
                             if code[col - startAtCol].upper() == "V":
-                                if executionMethod == Tem.printManually:
-                                    print(str(self.datalist), end="")
-                                elif executionMethod == Tem.storeInResultExpression:
-                                    result += "d" + "d".join(list(str(self.datalist)))
-                                else:
-                                    result += str(self.datalist)
+                                result = self.handleOutput(executionMethod, str(self.datalist), result)
                             elif code[col - startAtCol].upper() == "C":
-                                if executionMethod == Tem.printManually:
-                                    print(str(self.cursor), end="")
-                                elif executionMethod == Tem.storeInResultExpression:
-                                    result += "d" + "d".join(list(str(self.cursor)))
-                                else:
-                                    result += str(self.cursor)
+                                result = self.handleOutput(executionMethod, str(self.cursor), result)
                             elif code[col - startAtCol].upper() == "M":
                                 celldata = (
                                     str(len(self.cells))
                                     + " "
                                     + str(self.maxvaluepercell - 1)
                                 )
-                                if executionMethod == Tem.printManually:
-                                    print(str(celldata), end="")
-                                elif executionMethod == Tem.storeInResultExpression:
-                                    result += "d" + "d".join(list(str(celldata)))
-                                else:
-                                    result += str(celldata)
+                                result = self.handleOutput(executionMethod, str(celldata), result)
                             elif code[col - startAtCol].upper() == "B":
-                                if executionMethod == Tem.printManually:
-                                    print(str(bracketlist), end="")
-                                elif executionMethod == Tem.storeInResultExpression:
-                                    result += "d" + "d".join(list(str(bracketlist)))
-                                else:
-                                    result += str(bracketlist)
+                                result = self.handleOutput(executionMethod, str(bracketlist), result)
                             else:
                                 return self._gErr("Invalid debug mark", col=col)
                             special = 0
@@ -908,17 +838,7 @@ class Trawpaw:
                                                 )
                                         case Thmr.printManually:
                                             if isinstance(moduleResult, (str, int)):
-                                                if executionMethod == Tem.printManually:
-                                                    print(str(moduleResult), end="")
-                                                elif (
-                                                    executionMethod
-                                                    == Tem.storeInResultExpression
-                                                ):
-                                                    result += "d" + "d".join(
-                                                        list(str(moduleResult))
-                                                    )
-                                                else:
-                                                    result += str(moduleResult)
+                                                result = self.handleOutput(executionMethod, str(moduleResult), result)
                                             else:
                                                 return self._gErr(
                                                     f"Custom module '{dofunction}' must return an integer if the handleResult was set to storeToCurrCell",
@@ -1141,16 +1061,7 @@ class Trawpaw:
                             varname = code[col - startAtCol]
                             if self.datalist.get(varname):
                                 if self.datalist[varname]["type"] == "string":
-                                    if executionMethod == Tem.printManually:
-                                        print(
-                                            str(self.datalist[varname]["value"]), end=""
-                                        )
-                                    elif executionMethod == Tem.storeInResultExpression:
-                                        result += "d" + "d".join(
-                                            list(str(self.datalist[varname]["value"]))
-                                        )
-                                    else:
-                                        result += str(self.datalist[varname]["value"])
+                                    result = self.handleOutput(executionMethod, str(self.datalist[varname]["value"]), result)
                                 else:
                                     return self._gErr(
                                         "Variable must be a string", col=col
